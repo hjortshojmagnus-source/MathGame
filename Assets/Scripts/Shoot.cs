@@ -23,8 +23,8 @@ public class Shoot : MonoBehaviour
     private string currentFormula = "a*x + b";
     
     public float startX = 0f;      // Start x-værdi
-    public float endX = 10f;       // Slut x-værdi
-    public int pointCount = 50;    // Antal punkt på linjen
+    public float endX = 10f;       // Slut x-værdi - skal være større end startX
+    public int pointCount = 100;   // Antal punkt på linjen - øget for glatere linje
     
     // Parameterværdier som spilleren kan ændre
     public float paramA = 1f;      // Parameter a
@@ -184,7 +184,6 @@ public class Shoot : MonoBehaviour
             // Generer waypoints fra matematisk forskrift
             Vector3[] path = GeneratePathFromFormula();
             
-            // Gi kulen stien
             BulletScript bulletScript = newBullet.GetComponent<BulletScript>();
             if (bulletScript != null)
             {
@@ -196,13 +195,28 @@ public class Shoot : MonoBehaviour
     Vector3[] GeneratePathFromFormula()
     {
         Vector3[] path = new Vector3[pointCount];
-        float step = (endX - startX) / pointCount;
+        float step = (endX - startX) / (pointCount - 1);
+        
+        Vector3 bulletStartPos = transform.position;
+        
+        Debug.Log($"=== GENERERER STI ===");
+        Debug.Log($"Formel: {currentFormula}");
+        Debug.Log($"Parametre: a={paramA}, b={paramB}, c={paramC}, d={paramD}");
+        Debug.Log($"X-område: {startX} til {endX}, {pointCount} punkter, step={step}");
+        Debug.Log($"Kugle starter på: ({bulletStartPos.x:F2}, {bulletStartPos.y:F2})");
         
         for (int i = 0; i < pointCount; i++)
         {
             float x = startX + (i * step);
             float y = EvaluateFormula(currentFormula, x);
-            path[i] = new Vector3(x, y, 0);
+            
+            path[i] = new Vector3(bulletStartPos.x + x, bulletStartPos.y + y, 0);
+            
+            // Debug log for første 5 og sidste 5 punkter
+            if (i < 5 || i >= pointCount - 5)
+            {
+                Debug.Log($"Punkt {i}: x={x:F2}, y={y:F2} (Formel med a={paramA}, b={paramB})");
+            }
         }
         
         return path;
@@ -212,39 +226,106 @@ public class Shoot : MonoBehaviour
     {
         try
         {
-            // Erstat variabler med deres værdier ved hjælp af regex
-            // Dette sikrer at vi kun erstatter hele ord, ikke dele af funktionsnavne
+            // Erstat variabler med deres værdier
             string expression = formula;
             
-            // Erstat trigonometriske og andre funktioner først
-            // Dette skal gøres før variablerne erstattes
-            expression = Regex.Replace(expression, @"\bsin\b", "Math.Sin", RegexOptions.IgnoreCase);
-            expression = Regex.Replace(expression, @"\bcos\b", "Math.Cos", RegexOptions.IgnoreCase);
-            expression = Regex.Replace(expression, @"\btan\b", "Math.Tan", RegexOptions.IgnoreCase);
-            expression = Regex.Replace(expression, @"\bsqrt\b", "Math.Sqrt", RegexOptions.IgnoreCase);
-            expression = Regex.Replace(expression, @"\babs\b", "Math.Abs", RegexOptions.IgnoreCase);
-            expression = Regex.Replace(expression, @"\bexp\b", "Math.Exp", RegexOptions.IgnoreCase);
-            expression = Regex.Replace(expression, @"\blog\b", "Math.Log", RegexOptions.IgnoreCase);
-            expression = Regex.Replace(expression, @"\bpow\b", "Math.Pow", RegexOptions.IgnoreCase);
+            // Brug invariant culture for at sikre . som decimalseparator
+            System.Globalization.CultureInfo invariant = System.Globalization.CultureInfo.InvariantCulture;
             
-            // Erstat variabler med parenteser omkring værdier for sikkerhed
-            expression = Regex.Replace(expression, @"\bx\b", $"({x})");
-            expression = Regex.Replace(expression, @"\ba\b", $"({paramA})");
-            expression = Regex.Replace(expression, @"\bb\b", $"({paramB})");
-            expression = Regex.Replace(expression, @"\bc\b", $"({paramC})");
-            expression = Regex.Replace(expression, @"\bd\b", $"({paramD})");
+            // Erstat variabler først - omgiv med parenteser for sikkerhed
+            expression = Regex.Replace(expression, @"\bx\b", $"({x.ToString(invariant)})");
+            expression = Regex.Replace(expression, @"\ba\b", $"({paramA.ToString(invariant)})");
+            expression = Regex.Replace(expression, @"\bb\b", $"({paramB.ToString(invariant)})");
+            expression = Regex.Replace(expression, @"\bc\b", $"({paramC.ToString(invariant)})");
+            expression = Regex.Replace(expression, @"\bd\b", $"({paramD.ToString(invariant)})");
             
-            // Brug DataTable til at evaluere matematisk udtryk
+            // Evaluér matematiske funktioner
+            expression = EvaluateMathFunctions(expression);
+            
+            // Brug DataTable til at evaluere det endelige udtryk
             System.Data.DataTable dt = new System.Data.DataTable();
             var result = dt.Compute(expression, null);
             
-            return float.Parse(result.ToString());
+            float yValue = float.Parse(result.ToString(), invariant);
+            
+            return yValue;
         }
         catch (System.Exception ex)
         {
             Debug.LogError($"Fejl i matematisk formel: {formula} - {ex.Message}");
             return 0f;
         }
+    }
+    
+    string EvaluateMathFunctions(string expression)
+    {
+        // Håndter sin(), cos(), tan(), sqrt(), abs(), exp(), log()
+        System.Globalization.CultureInfo invariant = System.Globalization.CultureInfo.InvariantCulture;
+        
+        // Regexmønster for at finde funktioner som sin(x), cos(x) osv.
+        string pattern = @"(sin|cos|tan|sqrt|abs|exp|log|pow)\s*\(\s*([^()]+)\s*\)";
+        
+        while (Regex.IsMatch(expression, pattern, RegexOptions.IgnoreCase))
+        {
+            expression = Regex.Replace(expression, pattern, match =>
+            {
+                string funcName = match.Groups[1].Value.ToLower();
+                string innerExpression = match.Groups[2].Value;
+                
+                // Evaluér det indre udtryk først
+                System.Data.DataTable dt = new System.Data.DataTable();
+                try
+                {
+                    var innerResult = dt.Compute(innerExpression, null);
+                    float value = float.Parse(innerResult.ToString(), invariant);
+                    
+                    float result = funcName switch
+                    {
+                        "sin" => (float)System.Math.Sin(value),
+                        "cos" => (float)System.Math.Cos(value),
+                        "tan" => (float)System.Math.Tan(value),
+                        "sqrt" => (float)System.Math.Sqrt(value),
+                        "abs" => System.Math.Abs(value),
+                        "exp" => (float)System.Math.Exp(value),
+                        "log" => (float)System.Math.Log(value),
+                        _ => 0f
+                    };
+                    
+                    return result.ToString(invariant);
+                }
+                catch
+                {
+                    return match.Value; // Returner original hvis det fejler
+                }
+            }, RegexOptions.IgnoreCase);
+        }
+        
+        // Håndel pow() særskilt da det har to parametre
+        pattern = @"pow\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)";
+        expression = Regex.Replace(expression, pattern, match =>
+        {
+            string base1 = match.Groups[1].Value;
+            string exponent = match.Groups[2].Value;
+            
+            System.Data.DataTable dt = new System.Data.DataTable();
+            try
+            {
+                var baseResult = dt.Compute(base1, null);
+                var expResult = dt.Compute(exponent, null);
+                
+                float baseValue = float.Parse(baseResult.ToString(), invariant);
+                float expValue = float.Parse(expResult.ToString(), invariant);
+                
+                float result = (float)System.Math.Pow(baseValue, expValue);
+                return result.ToString(invariant);
+            }
+            catch
+            {
+                return match.Value;
+            }
+        }, RegexOptions.IgnoreCase);
+        
+        return expression;
     }
     
     float GetParameterValue(int paramIndex)
