@@ -351,9 +351,10 @@ GameObject:
   - component: {fileID: 2001399418}
   - component: {fileID: 2001399417}
   - component: {fileID: 2001399419}
+  - component: {fileID: 2001399420}
   m_Layer: 0
   m_Name: Circle
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -452,6 +453,21 @@ MonoBehaviour:
   paramB: 0
   paramC: 0
   paramD: 0
+--- !u!114 &2001399420
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2001399416}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56eb05d4994e0de459b6e8ae42395aa7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  health: 75
+  maxHealth: 100
+  damage: 50
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
