@@ -12,9 +12,10 @@ GameObject:
   - component: {fileID: 7820181566432851883}
   - component: {fileID: 1221013395410701720}
   - component: {fileID: 6230793838629197371}
+  - component: {fileID: 1033736050095479586}
   m_Layer: 0
   m_Name: Tree
-  m_TagString: Untagged
+  m_TagString: Tree
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -156,3 +157,16 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 7
+--- !u!114 &1033736050095479586
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5690424244611051222}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a04a573198a5b9c499abe1cfdf484b52, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObjektScript
+  lives: 0

@@ -12,9 +12,10 @@ GameObject:
   - component: {fileID: 6420382051419562625}
   - component: {fileID: 67794487205305695}
   - component: {fileID: -3948478682327294022}
+  - component: {fileID: 7816377404273275738}
   m_Layer: 0
   m_Name: Stone
-  m_TagString: Untagged
+  m_TagString: Stone
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -156,3 +157,16 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 7
+--- !u!114 &7816377404273275738
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5741981036416065352}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a04a573198a5b9c499abe1cfdf484b52, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObjektScript
+  lives: 0

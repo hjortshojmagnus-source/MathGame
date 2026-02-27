@@ -37,4 +37,15 @@ public class ObjektScript : MonoBehaviour
             Destroy(gameObject);
         }
     }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        // assume bullets are tagged "Bullet"
+        if (collision.gameObject.CompareTag("Bullet"))
+        {
+            lives -= 1;
+            // optionally destroy the bullet as well
+            Destroy(collision.gameObject);
+        }
+    }
 }
