@@ -12,8 +12,8 @@ public class Shoot : MonoBehaviour
         { "Linear", "a*x + b" },
         { "Quadratic", "a*x*x + b*x + c" },
         { "Cubic", "a*x*x*x + b*x*x + c*x + d" },
-        { "Sine", "a*sin(b*x)" },
-        { "Cosine", "a*cos(b*x)" },
+        { "Sine", "a*sin(b*x + c) + d" },
+        { "Cosine", "a*cos(b*x+c)+d" },
         { "Exponential", "a*exp(b*x)" },
         { "Square Root", "a*sqrt(x) + b" }
     };
@@ -112,7 +112,15 @@ public class Shoot : MonoBehaviour
                 {
                     currentFormulaIndex = index;
                     currentFormula = formulas[formulaNames[index]];
+                    
+                    // Nulstil parametre når formel skiftes
+                    paramA = 1f;
+                    paramB = 0f;
+                    paramC = 0f;
+                    paramD = 0f;
+                    
                     Debug.Log($"Formel valgt: {formulaNames[index]} = {currentFormula}");
+                    Debug.Log($"Parametre nulstillet: a=1, b=0, c=0, d=0");
                     formulaSelectionMode = false;
                     ShowMenu();
                 }
@@ -155,7 +163,10 @@ public class Shoot : MonoBehaviour
             }
             else if (c == '\n' || c == '\r') // Enter
             {
-                if (float.TryParse(inputBuffer, out float value))
+                // Parse med InvariantCulture for konsistens
+                System.Globalization.CultureInfo invariant = System.Globalization.CultureInfo.InvariantCulture;
+                
+                if (float.TryParse(inputBuffer, System.Globalization.NumberStyles.Float, invariant, out float value))
                 {
                     SetParameterValue(currentParameter, value);
                     string paramName = new string[] { "a", "b", "c", "d" }[currentParameter];
@@ -163,13 +174,17 @@ public class Shoot : MonoBehaviour
                 }
                 else
                 {
-                    Debug.LogError("Ugyldig værdi. Prøv igen.");
+                    Debug.LogError($"Ugyldig værdi '{inputBuffer}'. Prøv igen med f.eks. 1.5 eller -2");
                 }
                 inputMode = false;
             }
-            else if (char.IsDigit(c) || c == '-' || c == '.')
+            else if (char.IsDigit(c) || c == '-' || c == '.' || c == ',')
             {
-                inputBuffer += c;
+                // Accept både . og , og konverter til .
+                if (c == ',')
+                    inputBuffer += '.';
+                else
+                    inputBuffer += c;
             }
         }
     }
@@ -205,125 +220,211 @@ public class Shoot : MonoBehaviour
         Debug.Log($"X-område: {startX} til {endX}, {pointCount} punkter, step={step}");
         Debug.Log($"Kugle starter på: ({bulletStartPos.x:F2}, {bulletStartPos.y:F2})");
         
+        float minY = float.MaxValue;
+        float maxY = float.MinValue;
+        
         for (int i = 0; i < pointCount; i++)
         {
             float x = startX + (i * step);
-            float y = EvaluateFormula(currentFormula, x);
+            float y = EvaluateCurrentFormula(x);
             
+            // Holde styr på min/max y for validering
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+            
+            // Clamp extreme values to avoid insane coordinates
+            y = Mathf.Clamp(y, -100f, 100f);
             path[i] = new Vector3(bulletStartPos.x + x, bulletStartPos.y + y, 0);
             
             // Debug log for første 5 og sidste 5 punkter
-            if (i < 5 || i >= pointCount - 5)
+            if (i % 10 == 0 || i < 5 || i >= pointCount - 5)
             {
-                Debug.Log($"Punkt {i}: x={x:F2}, y={y:F2} (Formel med a={paramA}, b={paramB})");
+                Debug.Log($"Punkt {i}: x={x:F2}, y={y:F2}");
             }
         }
+        
+        Debug.Log($"Y-værdier: min={minY:F2}, max={maxY:F2}");
+        Debug.Log($"Hvis max Y er ekstrem stor, er der fejl i formlen eller parametre!");
         
         return path;
     }
     
-    float EvaluateFormula(string formula, float x)
+    // Fast, direct evaluator for the predefined formulas (no DataTable, no regex)
+    float EvaluateCurrentFormula(float x)
     {
-        try
+        string name = formulaNames[currentFormulaIndex];
+        float y = 0f;
+        switch (name)
         {
-            // Erstat variabler med deres værdier
-            string expression = formula;
-            
-            // Brug invariant culture for at sikre . som decimalseparator
-            System.Globalization.CultureInfo invariant = System.Globalization.CultureInfo.InvariantCulture;
-            
-            // Erstat variabler først - omgiv med parenteser for sikkerhed
-            expression = Regex.Replace(expression, @"\bx\b", $"({x.ToString(invariant)})");
-            expression = Regex.Replace(expression, @"\ba\b", $"({paramA.ToString(invariant)})");
-            expression = Regex.Replace(expression, @"\bb\b", $"({paramB.ToString(invariant)})");
-            expression = Regex.Replace(expression, @"\bc\b", $"({paramC.ToString(invariant)})");
-            expression = Regex.Replace(expression, @"\bd\b", $"({paramD.ToString(invariant)})");
-            
-            // Evaluér matematiske funktioner
-            expression = EvaluateMathFunctions(expression);
-            
-            // Brug DataTable til at evaluere det endelige udtryk
-            System.Data.DataTable dt = new System.Data.DataTable();
-            var result = dt.Compute(expression, null);
-            
-            float yValue = float.Parse(result.ToString(), invariant);
-            
-            return yValue;
+            case "Linear":
+                y = paramA * x + paramB;
+                break;
+            case "Quadratic":
+                y = paramA * x * x + paramB * x + paramC;
+                break;
+            case "Cubic":
+                y = paramA * x * x * x + paramB * x * x + paramC * x + paramD;
+                break;
+            case "Sine":
+                y = paramA * Mathf.Sin(paramB * x + paramC) + paramD;
+                break;
+            case "Cosine":
+                y = paramA * Mathf.Cos(paramB * x + paramC) + paramD;
+                break;
+            case "Exponential":
+                // Use Mathf.Exp for float-friendly exponent
+                y = paramA * Mathf.Exp(paramB * x);
+                break;
+            case "Square Root":
+                y = x < 0f ? 0f : paramA * Mathf.Sqrt(x) + paramB;
+                break;
+            default:
+                y = 0f;
+                break;
         }
-        catch (System.Exception ex)
-        {
-            Debug.LogError($"Fejl i matematisk formel: {formula} - {ex.Message}");
-            return 0f;
-        }
+
+        return y;
     }
     
     string EvaluateMathFunctions(string expression)
     {
         // Håndter sin(), cos(), tan(), sqrt(), abs(), exp(), log()
         System.Globalization.CultureInfo invariant = System.Globalization.CultureInfo.InvariantCulture;
-        
         // Regexmønster for at finde funktioner som sin(x), cos(x) osv.
-        string pattern = @"(sin|cos|tan|sqrt|abs|exp|log|pow)\s*\(\s*([^()]+)\s*\)";
-        
-        while (Regex.IsMatch(expression, pattern, RegexOptions.IgnoreCase))
+        string pattern = @"(sin|cos|tan|sqrt|abs|exp|log)\s*\(";
+
+        // Find matches and replace the entire function call (including its balanced parentheses)
+        while (true)
         {
-            expression = Regex.Replace(expression, pattern, match =>
+            var matches = Regex.Matches(expression, pattern, RegexOptions.IgnoreCase);
+            if (matches.Count == 0) break;
+
+            // Process matches from end to start to preserve indices when replacing
+            for (int mi = matches.Count - 1; mi >= 0; mi--)
             {
+                var match = matches[mi];
                 string funcName = match.Groups[1].Value.ToLower();
-                string innerExpression = match.Groups[2].Value;
-                
+                int funcStart = match.Index;
+
+                int parenStart = funcStart + match.Value.Length - 1; // position of '('
+                int parenCount = 1;
+                int parenEnd = parenStart + 1;
+
+                while (parenEnd < expression.Length && parenCount > 0)
+                {
+                    if (expression[parenEnd] == '(') parenCount++;
+                    else if (expression[parenEnd] == ')') parenCount--;
+                    parenEnd++;
+                }
+
+                if (parenCount != 0) continue; // skip unbalanced
+
+                // parenEnd is at position after the matching ')'
+                string innerExpression = expression.Substring(parenStart + 1, parenEnd - parenStart - 2 + 1);
+                string fullCall = expression.Substring(funcStart, parenEnd - funcStart);
+
                 // Evaluér det indre udtryk først
                 System.Data.DataTable dt = new System.Data.DataTable();
                 try
                 {
-                    var innerResult = dt.Compute(innerExpression, null);
-                    float value = float.Parse(innerResult.ToString(), invariant);
-                    
+                    var innerResult = dt.Compute(innerExpression.Replace(',', '.'), null);
+
+                    float value;
+                    if (innerResult is double d)
+                        value = (float)d;
+                    else
+                        value = float.Parse(innerResult.ToString(), System.Globalization.NumberStyles.Float);
+
                     float result = funcName switch
                     {
-                        "sin" => (float)System.Math.Sin(value),
-                        "cos" => (float)System.Math.Cos(value),
-                        "tan" => (float)System.Math.Tan(value),
-                        "sqrt" => (float)System.Math.Sqrt(value),
-                        "abs" => System.Math.Abs(value),
+                        "sin" => Mathf.Sin(value),
+                        "cos" => Mathf.Cos(value),
+                        "tan" => Mathf.Tan(value),
+                        "sqrt" => Mathf.Sqrt(value),
+                        "abs" => Mathf.Abs(value),
                         "exp" => (float)System.Math.Exp(value),
                         "log" => (float)System.Math.Log(value),
                         _ => 0f
                     };
-                    
-                    return result.ToString(invariant);
+
+                    string rep = result.ToString(invariant);
+                    expression = expression.Substring(0, funcStart) + rep + expression.Substring(parenEnd);
                 }
-                catch
+                catch (System.Exception ex)
                 {
-                    return match.Value; // Returner original hvis det fejler
+                    Debug.LogError($"Fejl i {funcName}({innerExpression}): {ex.Message}");
+                    // leave as-is
                 }
-            }, RegexOptions.IgnoreCase);
+            }
         }
         
         // Håndel pow() særskilt da det har to parametre
-        pattern = @"pow\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)";
-        expression = Regex.Replace(expression, pattern, match =>
+        pattern = @"pow\s*\(";
+        while (true)
         {
-            string base1 = match.Groups[1].Value;
-            string exponent = match.Groups[2].Value;
-            
-            System.Data.DataTable dt = new System.Data.DataTable();
-            try
+            var matches = Regex.Matches(expression, pattern, RegexOptions.IgnoreCase);
+            if (matches.Count == 0) break;
+
+            for (int mi = matches.Count - 1; mi >= 0; mi--)
             {
-                var baseResult = dt.Compute(base1, null);
-                var expResult = dt.Compute(exponent, null);
-                
-                float baseValue = float.Parse(baseResult.ToString(), invariant);
-                float expValue = float.Parse(expResult.ToString(), invariant);
-                
-                float result = (float)System.Math.Pow(baseValue, expValue);
-                return result.ToString(invariant);
+                var match = matches[mi];
+                int powStart = match.Index;
+
+                int parenStart = powStart + match.Value.Length - 1; // Position af "("
+                int parenCount = 1;
+                int parenEnd = parenStart + 1;
+
+                while (parenEnd < expression.Length && parenCount > 0)
+                {
+                    if (expression[parenEnd] == '(') parenCount++;
+                    else if (expression[parenEnd] == ')') parenCount--;
+                    parenEnd++;
+                }
+
+                if (parenCount != 0) continue;
+
+                string allArgs = expression.Substring(parenStart + 1, parenEnd - parenStart - 2 + 1);
+                string fullCall = expression.Substring(powStart, parenEnd - powStart);
+
+                // Split by comma at top level
+                int depth = 0;
+                int commaPos = -1;
+                for (int i = 0; i < allArgs.Length; i++)
+                {
+                    if (allArgs[i] == '(') depth++;
+                    else if (allArgs[i] == ')') depth--;
+                    else if (allArgs[i] == ',' && depth == 0)
+                    {
+                        commaPos = i;
+                        break;
+                    }
+                }
+
+                if (commaPos < 0) continue;
+
+                string base1 = allArgs.Substring(0, commaPos);
+                string exponent = allArgs.Substring(commaPos + 1);
+
+                System.Data.DataTable dt = new System.Data.DataTable();
+                try
+                {
+                    var baseResult = dt.Compute(base1.Replace(',', '.'), null);
+                    var expResult = dt.Compute(exponent.Replace(',', '.'), null);
+
+                    float baseValue = baseResult is double bdd ? (float)bdd : float.Parse(baseResult.ToString(), System.Globalization.NumberStyles.Float);
+                    float expValue = expResult is double edd ? (float)edd : float.Parse(expResult.ToString(), System.Globalization.NumberStyles.Float);
+
+                    float result = (float)System.Math.Pow(baseValue, expValue);
+                    string rep = result.ToString(invariant);
+                    expression = expression.Substring(0, powStart) + rep + expression.Substring(parenEnd);
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError($"Fejl i pow({base1}, {exponent}): {ex.Message}");
+                    // leave as-is
+                }
             }
-            catch
-            {
-                return match.Value;
-            }
-        }, RegexOptions.IgnoreCase);
+        }
         
         return expression;
     }
