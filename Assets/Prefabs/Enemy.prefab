@@ -170,3 +170,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyScript
   Liv: 1
+  enemyBulletPrefab: {fileID: 2880472418803415008, guid: 2a22c5ecb9acb4d458103aa8b88f93dc, type: 3}
+  bulletSpeed: 10
+  maxRandomOffset: 2
+  offsetReductionPerRound: 0.2
