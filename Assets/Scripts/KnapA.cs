@@ -2,20 +2,21 @@ using UnityEngine;
 
 public class KnapA : MonoBehaviour
 {
-    public Shoot shootScript;  // Reference to Shoot script
+    public Shoot shootScript;  // Reference to the Shoot script in Inspector
 
-    // This method will be called when the button is pressed
+    // This method is called when the UI button is pressed
     public void ChangeA(float newValue)
     {
-        if (shootScript != null)
+        if (shootScript == null || !shootScript.isReady)
         {
-            shootScript.paramA = newValue;
-            UnityEngine.Debug.Log("Parameter a changed to: " + newValue);
-            shootScript.ShowMenu(); // Optional: update menu display
+            Debug.LogError("Shoot script is not assigned in Inspector!");
+            return;
         }
-        else
-        {
-            UnityEngine.Debug.LogError("Shoot script is not assigned in Inspector!");
-        }
+
+        shootScript.paramA = newValue;
+        Debug.Log("Parameter A changed to: " + newValue);
+
+        // Call ShowMenu() to update the console output
+        shootScript.ShowMenu();
     }
 }

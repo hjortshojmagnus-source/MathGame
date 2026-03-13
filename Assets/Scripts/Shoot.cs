@@ -22,6 +22,7 @@ public class Shoot : MonoBehaviour
     private string[] formulaNames;
     private int currentFormulaIndex = 0;
     private string currentFormula = "a*x + b";
+    public bool isReady = false;
 
     public float startX = 0f;      // Start x-værdi
     public float endX = 10f;       // Slut x-værdi - skal være større end startX
@@ -38,12 +39,16 @@ public class Shoot : MonoBehaviour
     private bool inputMode = false;
     private bool formulaSelectionMode = false;
 
-    void Start()
+    void Awake()
     {
         formulaNames = new string[formulas.Count];
         formulas.Keys.CopyTo(formulaNames, 0);
         currentFormula = formulas[formulaNames[0]];
 
+        isReady = true;
+    }
+    void Start()
+    {
         ShowMenu();
     }
 
@@ -76,8 +81,19 @@ public class Shoot : MonoBehaviour
         }
     }
 
-    void ShowMenu()
+    public void ShowMenu()
     {
+        if (formulaNames == null || formulaNames.Length == 0)
+        {
+            Debug.LogWarning("Formula names not initialized yet!");
+            return;
+        }
+        if (currentFormulaIndex < 0 || currentFormulaIndex >= formulaNames.Length)
+    {
+        currentFormulaIndex = 0;
+        currentFormula = formulas[formulaNames[0]];
+    }
+
         Debug.Log("=== MATEMATIK SPIL ===");
         Debug.Log("Nuværende formel: " + formulaNames[currentFormulaIndex] + " = " + currentFormula);
         Debug.Log("\nDu kan redigere disse parametre:");
