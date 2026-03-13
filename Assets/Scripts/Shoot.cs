@@ -5,9 +5,10 @@ using System.Collections.Generic;
 public class Shoot : MonoBehaviour
 {
     public GameObject Bullet;
-    
+    public EnemyScript enemy;
+
     // Foruddefinerede formler
-    private Dictionary<string, string> formulas = new Dictionary<string, string>
+    private Dictionary<string, string> formulas = new Dictionary<string, string> // Formlerne er i en dictionary
     {
         { "Linear", "a*x + b" },
         { "Quadratic", "a*x*x + b*x + c" },
@@ -17,21 +18,21 @@ public class Shoot : MonoBehaviour
         { "Exponential", "a*exp(b*x)" },
         { "Square Root", "a*sqrt(x) + b" }
     };
-    
+
     private string[] formulaNames;
     private int currentFormulaIndex = 0;
     private string currentFormula = "a*x + b";
-    
+
     public float startX = 0f;      // Start x-værdi
     public float endX = 10f;       // Slut x-værdi - skal være større end startX
     public int pointCount = 100;   // Antal punkt på linjen - øget for glatere linje
-    
+
     // Parameterværdier som spilleren kan ændre
     public float paramA = 1f;      // Parameter a
     public float paramB = 0f;      // Parameter b
     public float paramC = 0f;      // Parameter c
     public float paramD = 0f;      // Parameter d
-    
+
     private string inputBuffer = "";
     private int currentParameter = 0; // 0=a, 1=b, 2=c, 3=d
     private bool inputMode = false;
@@ -42,7 +43,7 @@ public class Shoot : MonoBehaviour
         formulaNames = new string[formulas.Count];
         formulas.Keys.CopyTo(formulaNames, 0);
         currentFormula = formulas[formulaNames[0]];
-        
+
         ShowMenu();
     }
 
@@ -63,10 +64,10 @@ public class Shoot : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Alpha2)) StartInputMode(1);
             if (Input.GetKeyDown(KeyCode.Alpha3)) StartInputMode(2);
             if (Input.GetKeyDown(KeyCode.Alpha4)) StartInputMode(3);
-            
+
             // Vælg formel
             if (Input.GetKeyDown(KeyCode.F)) SelectFormulaMode();
-            
+
             // Skyd
             if (Input.GetKeyDown(KeyCode.K))
             {
@@ -74,23 +75,23 @@ public class Shoot : MonoBehaviour
             }
         }
     }
-    
+
     void ShowMenu()
     {
         Debug.Log("=== MATEMATIK SPIL ===");
         Debug.Log("Nuværende formel: " + formulaNames[currentFormulaIndex] + " = " + currentFormula);
         Debug.Log("\nDu kan redigere disse parametre:");
-        
+
         // Vis kun de parametre der bruges i formlen
         if (currentFormula.Contains("a")) Debug.Log("Tryk '1' for at ændre parameter a");
         if (currentFormula.Contains("b")) Debug.Log("Tryk '2' for at ændre parameter b");
         if (currentFormula.Contains("c")) Debug.Log("Tryk '3' for at ændre parameter c");
         if (currentFormula.Contains("d")) Debug.Log("Tryk '4' for at ændre parameter d");
-        
+
         Debug.Log("\nTryk 'F' for at vælge anden formel");
         Debug.Log("Tryk 'K' for at skyde");
     }
-    
+
     void SelectFormulaMode()
     {
         formulaSelectionMode = true;
@@ -100,7 +101,7 @@ public class Shoot : MonoBehaviour
             Debug.Log($"Tryk '{i}' for {formulaNames[i]}: {formulas[formulaNames[i]]}");
         }
     }
-    
+
     void HandleFormulaSelection()
     {
         foreach (char c in Input.inputString)
@@ -112,13 +113,13 @@ public class Shoot : MonoBehaviour
                 {
                     currentFormulaIndex = index;
                     currentFormula = formulas[formulaNames[index]];
-                    
+
                     // Nulstil parametre når formel skiftes
                     paramA = 1f;
                     paramB = 0f;
                     paramC = 0f;
                     paramD = 0f;
-                    
+
                     Debug.Log($"Formel valgt: {formulaNames[index]} = {currentFormula}");
                     Debug.Log($"Parametre nulstillet: a=1, b=0, c=0, d=0");
                     formulaSelectionMode = false;
@@ -131,26 +132,26 @@ public class Shoot : MonoBehaviour
             }
         }
     }
-    
+
     void StartInputMode(int paramIndex)
     {
         string paramName = new string[] { "a", "b", "c", "d" }[paramIndex];
-        
+
         // Tjek om parameteren bruges i den valgte formel
         if (!currentFormula.Contains(paramName))
         {
             Debug.LogError($"Parameteren '{paramName}' bruges ikke i denne formel!");
             return;
         }
-        
+
         inputMode = true;
         currentParameter = paramIndex;
         inputBuffer = "";
-        
+
         float currentValue = GetParameterValue(paramIndex);
         Debug.Log($"Redigerer parameter {paramName} (nuværende værdi: {currentValue}). Skriv værdi og tryk Enter.");
     }
-    
+
     void HandleParameterInput()
     {
         // Håndter tastetryk for numerisk input
@@ -165,7 +166,7 @@ public class Shoot : MonoBehaviour
             {
                 // Parse med InvariantCulture for konsistens
                 System.Globalization.CultureInfo invariant = System.Globalization.CultureInfo.InvariantCulture;
-                
+
                 if (float.TryParse(inputBuffer, System.Globalization.NumberStyles.Float, invariant, out float value))
                 {
                     SetParameterValue(currentParameter, value);
@@ -188,69 +189,70 @@ public class Shoot : MonoBehaviour
             }
         }
     }
-    
+
     void FireBullet()
     {
         Debug.Log("Shoot");
         if (Bullet != null)
         {
-            GameObject newBullet = Instantiate(Bullet, transform.position, transform.rotation);
-            
+            GameObject newBullet = Instantiate(Bullet, transform.position, transform.rotation); // Skyd fra spillerens position
+
             // Generer waypoints fra matematisk forskrift
             Vector3[] path = GeneratePathFromFormula();
-            
+
             BulletScript bulletScript = newBullet.GetComponent<BulletScript>();
             if (bulletScript != null)
             {
-                bulletScript.waypoints = path;
+                bulletScript.waypoints = path; // Sæt waypoints på bullet scriptet
             }
         }
+
+        // Find alle enemies og få dem til at skyde
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+
+        foreach (GameObject enemyObj in enemies)
+        {
+            EnemyScript enemyScript = enemyObj.GetComponent<EnemyScript>();
+
+            if (enemyScript != null)
+            {
+                enemyScript.ShootAtPlayer();
+            }
+        }
+        enemy.NextRound(); // Reducer random offset for næste runde
     }
-    
+
     Vector3[] GeneratePathFromFormula()
     {
         Vector3[] path = new Vector3[pointCount];
-        float step = (endX - startX) / (pointCount - 1);
-        
+        float step = (endX - startX) / (pointCount - 1); // opdeler x-området i pointCount punkter
+
         Vector3 bulletStartPos = transform.position;
-        
-        Debug.Log($"=== GENERERER STI ===");
-        Debug.Log($"Formel: {currentFormula}");
-        Debug.Log($"Parametre: a={paramA}, b={paramB}, c={paramC}, d={paramD}");
-        Debug.Log($"X-område: {startX} til {endX}, {pointCount} punkter, step={step}");
-        Debug.Log($"Kugle starter på: ({bulletStartPos.x:F2}, {bulletStartPos.y:F2})");
-        
+
         float minY = float.MaxValue;
         float maxY = float.MinValue;
-        
+
         for (int i = 0; i < pointCount; i++)
         {
             float x = startX + (i * step);
             float y = EvaluateCurrentFormula(x);
-            
+
             // Holde styr på min/max y for validering
             if (y < minY) minY = y;
             if (y > maxY) maxY = y;
-            
+
             // Clamp extreme values to avoid insane coordinates
             y = Mathf.Clamp(y, -100f, 100f);
             path[i] = new Vector3(bulletStartPos.x + x, bulletStartPos.y + y, 0);
-            
-            // Debug log for første 5 og sidste 5 punkter
-            if (i % 10 == 0 || i < 5 || i >= pointCount - 5)
-            {
-                Debug.Log($"Punkt {i}: x={x:F2}, y={y:F2}");
-            }
+
+
         }
-        
-        Debug.Log($"Y-værdier: min={minY:F2}, max={maxY:F2}");
-        Debug.Log($"Hvis max Y er ekstrem stor, er der fejl i formlen eller parametre!");
-        
+
         return path;
     }
-    
-    // Fast, direct evaluator for the predefined formulas (no DataTable, no regex)
-    float EvaluateCurrentFormula(float x)
+
+
+    float EvaluateCurrentFormula(float x) // Giver en y-værdi baseret på den valgte formel og de aktuelle parametre
     {
         string name = formulaNames[currentFormulaIndex];
         float y = 0f;
@@ -272,7 +274,6 @@ public class Shoot : MonoBehaviour
                 y = paramA * Mathf.Cos(paramB * x + paramC) + paramD;
                 break;
             case "Exponential":
-                // Use Mathf.Exp for float-friendly exponent
                 y = paramA * Mathf.Exp(paramB * x);
                 break;
             case "Square Root":
@@ -285,7 +286,7 @@ public class Shoot : MonoBehaviour
 
         return y;
     }
-    
+
     string EvaluateMathFunctions(string expression)
     {
         // Håndter sin(), cos(), tan(), sqrt(), abs(), exp(), log()
@@ -293,7 +294,7 @@ public class Shoot : MonoBehaviour
         // Regexmønster for at finde funktioner som sin(x), cos(x) osv.
         string pattern = @"(sin|cos|tan|sqrt|abs|exp|log)\s*\(";
 
-        // Find matches and replace the entire function call (including its balanced parentheses)
+        // Find matches og erstat dem iterativt indtil der ikke er flere
         while (true)
         {
             var matches = Regex.Matches(expression, pattern, RegexOptions.IgnoreCase);
@@ -308,7 +309,7 @@ public class Shoot : MonoBehaviour
 
                 int parenStart = funcStart + match.Value.Length - 1; // position of '('
                 int parenCount = 1;
-                int parenEnd = parenStart + 1;
+                int parenEnd = parenStart + 1; // tæller frem til den matchende ')'
 
                 while (parenEnd < expression.Length && parenCount > 0)
                 {
@@ -357,7 +358,7 @@ public class Shoot : MonoBehaviour
                 }
             }
         }
-        
+
         // Håndel pow() særskilt da det har to parametre
         pattern = @"pow\s*\(";
         while (true)
@@ -425,10 +426,10 @@ public class Shoot : MonoBehaviour
                 }
             }
         }
-        
+
         return expression;
     }
-    
+
     float GetParameterValue(int paramIndex)
     {
         return paramIndex switch
@@ -440,7 +441,7 @@ public class Shoot : MonoBehaviour
             _ => 0f
         };
     }
-    
+
     void SetParameterValue(int paramIndex, float value)
     {
         switch (paramIndex)

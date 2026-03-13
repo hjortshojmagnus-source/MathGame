@@ -9,6 +9,7 @@ TagManager:
   - Tree
   - Stone
   - Bush
+  - EnemyBullet
   layers:
   - Default
   - TransparentFX

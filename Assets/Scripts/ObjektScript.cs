@@ -41,10 +41,10 @@ public class ObjektScript : MonoBehaviour
     private void OnCollisionEnter2D(Collision2D collision)
     {
         // assume bullets are tagged "Bullet"
-        if (collision.gameObject.CompareTag("Bullet"))
+        if (collision.gameObject.CompareTag("Bullet") || collision.gameObject.CompareTag("EnemyBullet"))
         {
             lives -= 1;
-            // optionally destroy the bullet as well
+            // destroy the bullet as well
             Destroy(collision.gameObject);
         }
     }

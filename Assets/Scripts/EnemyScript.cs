@@ -10,8 +10,8 @@ public class EnemyScript : MonoBehaviour
     public float bulletSpeed = 10f;
 
     [Header("Random offset")]
-    public float maxRandomOffset = 2f;          // start-variation
-    public float offsetReductionPerRound = 0.2f; // hvor meget offset falder per runde
+    public float maxRandomOffset = 10f;          // start-variation
+    public float offsetReductionPerRound = 1f; // hvor meget offset falder per runde
 
     private Transform player;
 
@@ -20,28 +20,34 @@ public class EnemyScript : MonoBehaviour
         player = GameObject.FindGameObjectWithTag("Player").transform;
     }
 
-    // Enemy skyder når player har skudt
+    // Enemy skyder når player har skudt½
     public void ShootAtPlayer()
+{
+    if (player == null) return;
+
+    Vector3 playerPos = player.position;
+
+    // Tilføj tilfældig offset
+    float randomX = Random.Range(-maxRandomOffset, maxRandomOffset);
+    float randomY = Random.Range(-maxRandomOffset, maxRandomOffset);
+    Vector3 randomOffset = new Vector3(randomX, randomY, 0f);
+
+    Vector3 targetPos = playerPos + randomOffset;
+
+    // Instantiér bullet
+    GameObject bullet = Instantiate(enemyBulletPrefab, transform.position, Quaternion.identity);
+
+    BulletScript bulletScript = bullet.GetComponent<BulletScript>();
+
+    if (bulletScript != null)
     {
-        if (player == null) return;
-
-        Vector3 playerPos = player.position;
-
-        // Tilføj tilfældig offset
-        float randomX = Random.Range(-maxRandomOffset, maxRandomOffset);
-        float randomY = Random.Range(-maxRandomOffset, maxRandomOffset);
-        Vector3 randomOffset = new Vector3(randomX, randomY, 0f);
-
-        Vector3 targetPos = playerPos + randomOffset;
-
-        // Beregn retning og hastighed
-        Vector3 direction = (targetPos - transform.position).normalized;
-
-        // Instantiér bullet
-        GameObject bullet = Instantiate(enemyBulletPrefab, transform.position, Quaternion.identity);
-        Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
-        rb.linearVelocity = direction * bulletSpeed;
+        bulletScript.waypoints = new Vector3[]
+        {
+            transform.position,
+            targetPos
+        };
     }
+}
 
     // Reducer random område efter hver runde
     public void NextRound()
