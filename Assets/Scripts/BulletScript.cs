@@ -2,10 +2,10 @@ using UnityEngine;
 
 public class BulletScript : MonoBehaviour
 {
-    public Vector3[] waypoints; // Punkter som kulen skal følge
-    public float speed = 5f;
+    public Vector3[] waypoints; // Punkter som kuglen skal følge
+    public float speed = 5f; // kuglens hastighed
     
-    private int currentWaypointIndex = 0;
+    private int currentWaypointIndex = 0; // Hvilket waypoint kuglen er på vej mod
     private float distanceTraveled = 0f;
     private float distanceToNextWaypoint = 0f;
     private Vector3 currentDirection = Vector3.zero;
@@ -14,7 +14,7 @@ public class BulletScript : MonoBehaviour
     {
         if (waypoints != null && waypoints.Length > 0)
         {
-            transform.position = waypoints[0];
+            transform.position = waypoints[0]; // placere kuglen ved det første waypoint
             if (waypoints.Length > 1)
             {
                 SetDirectionToNextWaypoint();
@@ -32,14 +32,14 @@ public class BulletScript : MonoBehaviour
         distanceTraveled += speed * Time.deltaTime;
 
         // Tjek om vi har nået næste waypoint
-        if (distanceTraveled >= distanceToNextWaypoint)
+        if (distanceTraveled >= distanceToNextWaypoint) // tjekker om vi har nået eller passeret det næste waypoint
         {
             currentWaypointIndex++;
             
             // Hvis alle punkter er passeret, ødelæg kulen
-            if (currentWaypointIndex >= waypoints.Length)
+            if (currentWaypointIndex >= waypoints.Length) // tjekker om vi har nået det sidste waypoint
             {
-                Destroy(gameObject);
+                Destroy(gameObject); // ødelæg kuglen
                 return;
             }
             
