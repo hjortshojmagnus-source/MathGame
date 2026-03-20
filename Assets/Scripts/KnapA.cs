@@ -1,6 +1,6 @@
 using UnityEngine;
 
-class KnapA : MonoBehaviour
+public class KnapA : MonoBehaviour
 {
     public Shoot shootScript;  // Reference to Shoot script
 
@@ -11,7 +11,7 @@ class KnapA : MonoBehaviour
         {
             shootScript.paramA = newValue;
             UnityEngine.Debug.Log("Parameter a changed to: " + newValue);
-            shootScript.ShowMenu(); // Optional: update menu display
+            shootScript.ShowMenu();
         }
         else
         {
