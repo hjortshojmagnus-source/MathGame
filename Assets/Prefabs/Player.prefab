@@ -109,6 +109,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   Bullet: {fileID: 2880472418803415008, guid: 2a22c5ecb9acb4d458103aa8b88f93dc, type: 3}
   enemy: {fileID: 4701912515404241822, guid: 8bc9eb00c45cf7946a7e57e774443de6, type: 3}
+  playerTransform: {fileID: 4372367883632278015}
   startX: 0
   endX: 10
   pointCount: 50

@@ -18,6 +18,7 @@ public class Shoot : MonoBehaviour
 {
     public GameObject Bullet;
     public EnemyScript enemy;
+    public Transform playerTransform;
 
     // Foruddefinerede formler
     private List<Formula> formulas = new List<Formula>
@@ -215,42 +216,31 @@ public class Shoot : MonoBehaviour
 
     public void FireBullet()
     {
-        Debug.Log("Shoot");
         if (Bullet != null)
         {
-            GameObject newBullet = Instantiate(Bullet, transform.position, transform.rotation); // Skyd fra spillerens position
+            Vector3 spawnPos = playerTransform.position; // spillerens position
+            Quaternion spawnRot = playerTransform.rotation; // evt rotation
 
-            // Generer waypoints fra matematisk forskrift
+            GameObject newBullet = Instantiate(Bullet, spawnPos, spawnRot);
+
             Vector3[] path = GeneratePathFromFormula();
 
             BulletScript bulletScript = newBullet.GetComponent<BulletScript>();
             if (bulletScript != null)
             {
-                bulletScript.waypoints = path; // Sæt waypoints på bullet scriptet
+                bulletScript.waypoints = path;
             }
         }
 
-        // Find alle enemies og få dem til at skyde
-        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
-
-        foreach (GameObject enemyObj in enemies)
-        {
-            EnemyScript enemyScript = enemyObj.GetComponent<EnemyScript>();
-
-            if (enemyScript != null)
-            {
-                enemyScript.ShootAtPlayer();
-            }
-        }
-        enemy.NextRound(); // Reducer random offset for næste runde
+        if (enemy != null)
+            enemy.NextRound();
     }
-
     Vector3[] GeneratePathFromFormula()
     {
         Vector3[] path = new Vector3[pointCount];
         float step = (endX - startX) / (pointCount - 1); // opdeler x-området i pointCount punkter
 
-        Vector3 bulletStartPos = transform.position;
+        Vector3 bulletStartPos = playerTransform.position;
 
         float minY = float.MaxValue;
         float maxY = float.MinValue;

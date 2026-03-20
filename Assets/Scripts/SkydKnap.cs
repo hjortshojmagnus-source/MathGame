@@ -9,4 +9,5 @@ public class SkydKnap : MonoBehaviour
         shootScript.FireBullet();
         
     }
+    
 }
