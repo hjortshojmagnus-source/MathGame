@@ -76,7 +76,7 @@ public class Shoot : MonoBehaviour
         }
     }
 
-    void ShowMenu()
+    public void ShowMenu()
     {
         Debug.Log("=== MATEMATIK SPIL ===");
         Debug.Log("Nuværende formel: " + formulaNames[currentFormulaIndex] + " = " + currentFormula);

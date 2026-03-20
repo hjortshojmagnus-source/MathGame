@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class KnapA : MonoBehaviour
+class KnapA : MonoBehaviour
 {
     public Shoot shootScript;  // Reference to Shoot script
 
