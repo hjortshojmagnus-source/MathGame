@@ -1,7 +1,6 @@
 using UnityEngine;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 public class Shoot : MonoBehaviour
 {
@@ -86,36 +85,36 @@ public class Shoot : MonoBehaviour
     {
         if (formulaNames == null || formulaNames.Length == 0)
         {
-            UnityEngine.Debug.LogWarning("Formula names not initialized yet!");
+            Debug.LogWarning("Formula names not initialized yet!");
             return;
         }
         if (currentFormulaIndex < 0 || currentFormulaIndex >= formulaNames.Length)
-        {
-            currentFormulaIndex = 0;
-            currentFormula = formulas[formulaNames[0]];
-        }
+    {
+        currentFormulaIndex = 0;
+        currentFormula = formulas[formulaNames[0]];
+    }
 
-        UnityEngine.Debug.Log("=== MATEMATIK SPIL ===");
-        UnityEngine.Debug.Log("Nuværende formel: " + formulaNames[currentFormulaIndex] + " = " + currentFormula);
-        UnityEngine.Debug.Log("\nDu kan redigere disse parametre:");
+        Debug.Log("=== MATEMATIK SPIL ===");
+        Debug.Log("Nuværende formel: " + formulaNames[currentFormulaIndex] + " = " + currentFormula);
+        Debug.Log("\nDu kan redigere disse parametre:");
 
         // Vis kun de parametre der bruges i formlen
-        if (currentFormula.Contains("a")) UnityEngine.Debug.Log("Tryk '1' for at ændre parameter a");
-        if (currentFormula.Contains("b")) UnityEngine.Debug.Log("Tryk '2' for at ændre parameter b");
-        if (currentFormula.Contains("c")) UnityEngine.Debug.Log("Tryk '3' for at ændre parameter c");
-        if (currentFormula.Contains("d")) UnityEngine.Debug.Log("Tryk '4' for at ændre parameter d");
+        if (currentFormula.Contains("a")) Debug.Log("Tryk '1' for at ændre parameter a");
+        if (currentFormula.Contains("b")) Debug.Log("Tryk '2' for at ændre parameter b");
+        if (currentFormula.Contains("c")) Debug.Log("Tryk '3' for at ændre parameter c");
+        if (currentFormula.Contains("d")) Debug.Log("Tryk '4' for at ændre parameter d");
 
-        UnityEngine.Debug.Log("\nTryk 'F' for at vælge anden formel");
-        UnityEngine.Debug.Log("Tryk 'K' for at skyde");
+        Debug.Log("\nTryk 'F' for at vælge anden formel");
+        Debug.Log("Tryk 'K' for at skyde");
     }
 
     void SelectFormulaMode()
     {
         formulaSelectionMode = true;
-        UnityEngine.Debug.Log("\n=== VÆLG FORMEL ===");
+        Debug.Log("\n=== VÆLG FORMEL ===");
         for (int i = 0; i < formulaNames.Length; i++)
         {
-            UnityEngine.Debug.Log($"Tryk '{i}' for {formulaNames[i]}: {formulas[formulaNames[i]]}");
+            Debug.Log($"Tryk '{i}' for {formulaNames[i]}: {formulas[formulaNames[i]]}");
         }
     }
 
@@ -137,14 +136,14 @@ public class Shoot : MonoBehaviour
                     paramC = 0f;
                     paramD = 0f;
 
-                    UnityEngine.Debug.Log($"Formel valgt: {formulaNames[index]} = {currentFormula}");
-                    UnityEngine.Debug.Log($"Parametre nulstillet: a=1, b=0, c=0, d=0");
+                    Debug.Log($"Formel valgt: {formulaNames[index]} = {currentFormula}");
+                    Debug.Log($"Parametre nulstillet: a=1, b=0, c=0, d=0");
                     formulaSelectionMode = false;
                     ShowMenu();
                 }
                 else
                 {
-                    UnityEngine.Debug.LogError("Ugyldig valg!");
+                    Debug.LogError("Ugyldig valg!");
                 }
             }
         }
@@ -157,7 +156,7 @@ public class Shoot : MonoBehaviour
         // Tjek om parameteren bruges i den valgte formel
         if (!currentFormula.Contains(paramName))
         {
-            UnityEngine.Debug.LogError($"Parameteren '{paramName}' bruges ikke i denne formel!");
+            Debug.LogError($"Parameteren '{paramName}' bruges ikke i denne formel!");
             return;
         }
 
@@ -166,7 +165,7 @@ public class Shoot : MonoBehaviour
         inputBuffer = "";
 
         float currentValue = GetParameterValue(paramIndex);
-        UnityEngine.Debug.Log($"Redigerer parameter {paramName} (nuværende værdi: {currentValue}). Skriv værdi og tryk Enter.");
+        Debug.Log($"Redigerer parameter {paramName} (nuværende værdi: {currentValue}). Skriv værdi og tryk Enter.");
     }
 
     void HandleParameterInput()
@@ -188,11 +187,11 @@ public class Shoot : MonoBehaviour
                 {
                     SetParameterValue(currentParameter, value);
                     string paramName = new string[] { "a", "b", "c", "d" }[currentParameter];
-                    UnityEngine.Debug.Log($"Parameter {paramName} sat til {value}");
+                    Debug.Log($"Parameter {paramName} sat til {value}");
                 }
                 else
                 {
-                    UnityEngine.Debug.LogError($"Ugyldig værdi '{inputBuffer}'. Prøv igen med f.eks. 1.5 eller -2");
+                    Debug.LogError($"Ugyldig værdi '{inputBuffer}'. Prøv igen med f.eks. 1.5 eller -2");
                 }
                 inputMode = false;
             }
@@ -209,7 +208,7 @@ public class Shoot : MonoBehaviour
 
     void FireBullet()
     {
-        UnityEngine.Debug.Log("Shoot");
+        Debug.Log("Shoot");
         if (Bullet != null)
         {
             GameObject newBullet = Instantiate(Bullet, transform.position, transform.rotation); // Skyd fra spillerens position
@@ -370,7 +369,7 @@ public class Shoot : MonoBehaviour
                 }
                 catch (System.Exception ex)
                 {
-                    UnityEngine.Debug.LogError($"Fejl i {funcName}({innerExpression}): {ex.Message}");
+                    Debug.LogError($"Fejl i {funcName}({innerExpression}): {ex.Message}");
                     // leave as-is
                 }
             }
@@ -438,7 +437,7 @@ public class Shoot : MonoBehaviour
                 }
                 catch (System.Exception ex)
                 {
-                    UnityEngine.Debug.LogError($"Fejl i pow({base1}, {exponent}): {ex.Message}");
+                    Debug.LogError($"Fejl i pow({base1}, {exponent}): {ex.Message}");
                     // leave as-is
                 }
             }
@@ -468,35 +467,5 @@ public class Shoot : MonoBehaviour
             case 2: paramC = value; break;
             case 3: paramD = value; break;
         }
-    }
-    public void SetParameterFromInput(string value, int parameterIndex)
-    {
-        if (float.TryParse(value, out float result))
-        {
-            SetParameterValue(parameterIndex, result);
-            UpdateCurrentFormula(); // Opdater formlen og vis den
-            ShowMenu(); // Vis den opdaterede menu
-        }
-        else
-        {
-            UnityEngine.Debug.LogError("Invalid number");
-        }
-    }
-
-    void UpdateCurrentFormula()
-    {
-        // Opdater currentFormula baseret på currentFormulaIndex og de aktuelle parametre
-        string name = formulaNames[currentFormulaIndex];
-        currentFormula = name switch
-        {
-            "Linear" => $"{paramA}*x + {paramB}",
-            "Quadratic" => $"{paramA}*x*x + {paramB}*x + {paramC}",
-            "Cubic" => $"{paramA}*x*x*x + {paramB}*x*x + {paramC}*x + {paramD}",
-            "Sine" => $"{paramA}*sin({paramB}*x + {paramC}) + {paramD}",
-            "Cosine" => $"{paramA}*cos({paramB}*x + {paramC}) + {paramD}",
-            "Exponential" => $"{paramA}*exp({paramB}*x)",
-            "Square Root" => $"{paramA}*sqrt(x) + {paramB}",
-            _ => currentFormula
-        };
     }
 }
