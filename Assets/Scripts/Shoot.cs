@@ -2,22 +2,34 @@ using UnityEngine;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 
+[System.Serializable]
+public class Formula
+{
+    public string name;
+    public string expression;
+
+    public Formula(string name, string expression)
+    {
+        this.name = name;
+        this.expression = expression;
+    }
+}
 public class Shoot : MonoBehaviour
 {
     public GameObject Bullet;
     public EnemyScript enemy;
 
     // Foruddefinerede formler
-    private Dictionary<string, string> formulas = new Dictionary<string, string> // Formlerne er i en dictionary
-    {
-        { "Linear", "a*x + b" },
-        { "Quadratic", "a*x*x + b*x + c" },
-        { "Cubic", "a*x*x*x + b*x*x + c*x + d" },
-        { "Sine", "a*sin(b*x + c) + d" },
-        { "Cosine", "a*cos(b*x+c)+d" },
-        { "Exponential", "a*exp(b*x)" },
-        { "Square Root", "a*sqrt(x) + b" }
-    };
+    private List<Formula> formulas = new List<Formula>
+{
+    new Formula("Linear", "a*x + b"),
+    new Formula("Quadratic", "a*x*x + b*x + c"),
+    new Formula("Cubic", "a*x*x*x + b*x*x + c*x + d"),
+    new Formula("Sine", "a*sin(b*x + c) + d"),
+    new Formula("Cosine", "a*cos(b*x+c)+d"),
+    new Formula("Exponential", "a*exp(b*x)"),
+    new Formula("Square Root", "a*sqrt(x) + b")
+};
 
     private string[] formulaNames;
     private int currentFormulaIndex = 0;
@@ -41,8 +53,13 @@ public class Shoot : MonoBehaviour
     void Start()
     {
         formulaNames = new string[formulas.Count];
-        formulas.Keys.CopyTo(formulaNames, 0);
-        currentFormula = formulas[formulaNames[0]];
+
+        for (int i = 0; i < formulas.Count; i++)
+        {
+            formulaNames[i] = formulas[i].name;
+        }
+
+        currentFormula = formulas[0].expression;
 
         ShowMenu();
     }
@@ -75,6 +92,17 @@ public class Shoot : MonoBehaviour
             }
         }
     }
+    public void changeParameter(int paramIndex, float newValue)
+    {
+        switch (paramIndex)
+        {
+            case 0: paramA = newValue; break;
+            case 1: paramB = newValue; break;
+            case 2: paramC = newValue; break;
+            case 3: paramD = newValue; break;
+        }
+
+    }
 
     public void ShowMenu()
     {
@@ -95,10 +123,11 @@ public class Shoot : MonoBehaviour
     void SelectFormulaMode()
     {
         formulaSelectionMode = true;
-        Debug.Log("\n=== VÆLG FORMEL ===");
-        for (int i = 0; i < formulaNames.Length; i++)
+        Debug.Log("=== VÆLG FORMEL ===");
+
+        for (int i = 0; i < formulas.Count; i++)
         {
-            Debug.Log($"Tryk '{i}' for {formulaNames[i]}: {formulas[formulaNames[i]]}");
+            Debug.Log($"Tryk '{i}' for {formulas[i].name}: {formulas[i].expression}");
         }
     }
 
@@ -109,25 +138,24 @@ public class Shoot : MonoBehaviour
             if (char.IsDigit(c))
             {
                 int index = int.Parse(c.ToString());
-                if (index < formulaNames.Length)
+
+                if (index >= 0 && index < formulas.Count)
                 {
                     currentFormulaIndex = index;
-                    currentFormula = formulas[formulaNames[index]];
+                    currentFormula = formulas[index].expression;
 
-                    // Nulstil parametre når formel skiftes
                     paramA = 1f;
                     paramB = 0f;
                     paramC = 0f;
                     paramD = 0f;
 
-                    Debug.Log($"Formel valgt: {formulaNames[index]} = {currentFormula}");
-                    Debug.Log($"Parametre nulstillet: a=1, b=0, c=0, d=0");
+                    Debug.Log($"Formel valgt: {formulas[index].name} = {currentFormula}");
                     formulaSelectionMode = false;
                     ShowMenu();
                 }
                 else
                 {
-                    Debug.LogError("Ugyldig valg!");
+                    Debug.LogError("Ugyldigt valg!");
                 }
             }
         }
@@ -154,43 +182,38 @@ public class Shoot : MonoBehaviour
 
     void HandleParameterInput()
     {
-        // Håndter tastetryk for numerisk input
-        foreach (char c in Input.inputString)
+        void HandleFormulaSelection()
         {
-            if (c == '\b') // Backspace
+            foreach (char c in Input.inputString)
             {
-                if (inputBuffer.Length > 0)
-                    inputBuffer = inputBuffer.Substring(0, inputBuffer.Length - 1);
-            }
-            else if (c == '\n' || c == '\r') // Enter
-            {
-                // Parse med InvariantCulture for konsistens
-                System.Globalization.CultureInfo invariant = System.Globalization.CultureInfo.InvariantCulture;
+                if (char.IsDigit(c))
+                {
+                    int index = int.Parse(c.ToString());
 
-                if (float.TryParse(inputBuffer, System.Globalization.NumberStyles.Float, invariant, out float value))
-                {
-                    SetParameterValue(currentParameter, value);
-                    string paramName = new string[] { "a", "b", "c", "d" }[currentParameter];
-                    Debug.Log($"Parameter {paramName} sat til {value}");
+                    if (index >= 0 && index < formulas.Count)
+                    {
+                        currentFormulaIndex = index;
+                        currentFormula = formulas[index].expression;
+
+                        paramA = 1f;
+                        paramB = 0f;
+                        paramC = 0f;
+                        paramD = 0f;
+
+                        Debug.Log($"Formel valgt: {formulas[index].name} = {currentFormula}");
+                        formulaSelectionMode = false;
+                        ShowMenu();
+                    }
+                    else
+                    {
+                        Debug.LogError("Ugyldigt valg!");
+                    }
                 }
-                else
-                {
-                    Debug.LogError($"Ugyldig værdi '{inputBuffer}'. Prøv igen med f.eks. 1.5 eller -2");
-                }
-                inputMode = false;
-            }
-            else if (char.IsDigit(c) || c == '-' || c == '.' || c == ',')
-            {
-                // Accept både . og , og konverter til .
-                if (c == ',')
-                    inputBuffer += '.';
-                else
-                    inputBuffer += c;
             }
         }
     }
 
-    void FireBullet()
+    public void FireBullet()
     {
         Debug.Log("Shoot");
         if (Bullet != null)
@@ -252,33 +275,47 @@ public class Shoot : MonoBehaviour
     }
 
 
-    float EvaluateCurrentFormula(float x) // Giver en y-værdi baseret på den valgte formel og de aktuelle parametre
+    float EvaluateCurrentFormula(float x)
     {
-        string name = formulaNames[currentFormulaIndex];
+        if (currentFormulaIndex < 0 || currentFormulaIndex >= formulas.Count)
+        {
+            Debug.LogError("Index fejl!");
+            return 0f;
+        }
+
+        string name = formulas[currentFormulaIndex].name;
         float y = 0f;
+
         switch (name)
         {
             case "Linear":
                 y = paramA * x + paramB;
                 break;
+
             case "Quadratic":
                 y = paramA * x * x + paramB * x + paramC;
                 break;
+
             case "Cubic":
                 y = paramA * x * x * x + paramB * x * x + paramC * x + paramD;
                 break;
+
             case "Sine":
                 y = paramA * Mathf.Sin(paramB * x + paramC) + paramD;
                 break;
+
             case "Cosine":
                 y = paramA * Mathf.Cos(paramB * x + paramC) + paramD;
                 break;
+
             case "Exponential":
                 y = paramA * Mathf.Exp(paramB * x);
                 break;
+
             case "Square Root":
                 y = x < 0f ? 0f : paramA * Mathf.Sqrt(x) + paramB;
                 break;
+
             default:
                 y = 0f;
                 break;
