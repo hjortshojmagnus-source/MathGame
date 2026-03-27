@@ -1,19 +1,31 @@
-using System.Transactions;
 using UnityEngine;
 
 public class SkydKnap : MonoBehaviour
 {
-    public Shoot shootScript;  // Reference to Shoot script
-    public Transform playerTransform;  // Reference to player's transform
+    private Shoot shootScript;
 
-    void Start()
+    public void SetPlayer(GameObject player)
     {
-        playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
+        if (player != null)
+        {
+            shootScript = player.GetComponent<Shoot>();
+        }
+        else
+        {
+            Debug.LogError("SetPlayer fik null!");
+        }
     }
+
     public void skyd()
     {
-        UnityEngine.Debug.Log("Skyd button pressed!");
-        shootScript.FireBullet();
-
+        if (shootScript != null)
+        {
+            Debug.Log("Skyd button pressed!");
+            shootScript.FireBullet();
+        }
+        else
+        {
+            Debug.LogError("Shoot script not set!");
+        }
     }
 }

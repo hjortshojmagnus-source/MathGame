@@ -16,9 +16,9 @@ public class Formula
 }
 public class Shoot : MonoBehaviour
 {
+    public GameObject playerPrefab;
     public GameObject Bullet;
     public EnemyScript enemy;
-    public Transform playerTransform;
 
     // Foruddefinerede formler
     private List<Formula> formulas = new List<Formula>
@@ -52,18 +52,20 @@ public class Shoot : MonoBehaviour
     private bool formulaSelectionMode = false;
 
     void Start()
+{
+    playerPrefab = GameObject.Find("Player(Clone)");
+
+    formulaNames = new string[formulas.Count];
+
+    for (int i = 0; i < formulas.Count; i++)
     {
-        formulaNames = new string[formulas.Count];
-
-        for (int i = 0; i < formulas.Count; i++)
-        {
-            formulaNames[i] = formulas[i].name;
-        }
-
-        currentFormula = formulas[0].expression;
-
-        ShowMenu();
+        formulaNames[i] = formulas[i].name;
     }
+
+    currentFormula = formulas[0].expression;
+
+    ShowMenu();
+}
 
     void Update()
     {
@@ -215,24 +217,27 @@ public class Shoot : MonoBehaviour
     }
 
     public void FireBullet()
+{
+    if (Bullet != null)
     {
-        if (Bullet != null)
+        playerPrefab = GameObject.Find("Player(Clone)");
+
+        Vector3 spawnPos = playerPrefab.transform.position;
+
+        GameObject newBullet = Instantiate(Bullet, spawnPos, transform.rotation);
+
+        Vector3[] path = GeneratePathFromFormula(spawnPos);
+
+        BulletScript bulletScript = newBullet.GetComponent<BulletScript>();
+        if (bulletScript != null)
         {
-            Vector3 spawnPos = playerTransform.position;
-            GameObject newBullet = Instantiate(Bullet, spawnPos, playerTransform.rotation);
-
-            Vector3[] path = GeneratePathFromFormula(spawnPos);
-
-            BulletScript bulletScript = newBullet.GetComponent<BulletScript>();
-            if (bulletScript != null)
-            {
-                bulletScript.waypoints = path;
-            }
+            bulletScript.waypoints = path;
         }
-
-        if (enemy != null)
-            enemy.NextRound();
     }
+
+    if (enemy != null)
+        enemy.NextRound();
+}
 
     Vector3[] GeneratePathFromFormula(Vector3 startPos)
     {

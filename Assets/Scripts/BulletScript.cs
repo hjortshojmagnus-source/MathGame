@@ -11,16 +11,12 @@ public class BulletScript : MonoBehaviour
     private Vector3 currentDirection = Vector3.zero;
 
     void Start()
+{
+    if (waypoints != null && waypoints.Length > 0 && waypoints.Length > 1)
     {
-        if (waypoints != null && waypoints.Length > 0)
-        {
-            transform.position = waypoints[0];
-            if (waypoints.Length > 1)
-            {
-                SetDirectionToNextWaypoint();
-            }
-        }
+        SetDirectionToNextWaypoint();
     }
+}
 
     void Update()
     {

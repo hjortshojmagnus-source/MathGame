@@ -9,6 +9,8 @@ public class MapGenerator : MonoBehaviour
     public GameObject enemyPrefab;
     public GameObject playerPrefab;
     public float minPlayerEnemyDistance = 5f; // Minimum afstand mellem spiller og fjende ved spawn
+    public SkydKnap skydKnap;
+    public GameObject currentPlayer; // gem reference
 
     [Header("Spawn indstillinger")]
     public float minDistance = 1f; // Minimum afstand mellem objekter
@@ -74,10 +76,13 @@ public class MapGenerator : MonoBehaviour
 
         return new Vector2(x, y);
     }
+
+
     void spawnCharacter()
     {
         Vector2 playerPosition = GetSafePosition(true);
-        Instantiate(playerPrefab, playerPosition, Quaternion.identity);
+
+        currentPlayer = Instantiate(playerPrefab, playerPosition, Quaternion.identity);
 
         Vector2 enemyPosition;
         int attempts = 0;
@@ -90,6 +95,7 @@ public class MapGenerator : MonoBehaviour
         while (Vector2.Distance(playerPosition, enemyPosition) < minPlayerEnemyDistance && attempts < 50);
 
         Instantiate(enemyPrefab, enemyPosition, Quaternion.identity);
+        skydKnap.SetPlayer(currentPlayer);
     }
     Vector2 GetRandomPositionInCameraSide(bool leftSide)
     {
