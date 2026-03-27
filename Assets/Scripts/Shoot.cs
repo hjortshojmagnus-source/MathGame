@@ -218,12 +218,10 @@ public class Shoot : MonoBehaviour
     {
         if (Bullet != null)
         {
-            Vector3 spawnPos = playerTransform.position; // spillerens position
-            Quaternion spawnRot = playerTransform.rotation; // evt rotation
+            Vector3 spawnPos = playerTransform.position;
+            GameObject newBullet = Instantiate(Bullet, spawnPos, playerTransform.rotation);
 
-            GameObject newBullet = Instantiate(Bullet, spawnPos, spawnRot);
-
-            Vector3[] path = GeneratePathFromFormula();
+            Vector3[] path = GeneratePathFromFormula(spawnPos);
 
             BulletScript bulletScript = newBullet.GetComponent<BulletScript>();
             if (bulletScript != null)
@@ -235,12 +233,11 @@ public class Shoot : MonoBehaviour
         if (enemy != null)
             enemy.NextRound();
     }
-    Vector3[] GeneratePathFromFormula()
+
+    Vector3[] GeneratePathFromFormula(Vector3 startPos)
     {
         Vector3[] path = new Vector3[pointCount];
-        float step = (endX - startX) / (pointCount - 1); // opdeler x-området i pointCount punkter
-
-        Vector3 bulletStartPos = playerTransform.position;
+        float step = (endX - startX) / (pointCount - 1);
 
         float minY = float.MaxValue;
         float maxY = float.MinValue;
@@ -250,15 +247,11 @@ public class Shoot : MonoBehaviour
             float x = startX + (i * step);
             float y = EvaluateCurrentFormula(x);
 
-            // Holde styr på min/max y for validering
             if (y < minY) minY = y;
             if (y > maxY) maxY = y;
 
-            // Clamp extreme values to avoid insane coordinates
             y = Mathf.Clamp(y, -100f, 100f);
-            path[i] = new Vector3(bulletStartPos.x + x, bulletStartPos.y + y, 0);
-
-
+            path[i] = new Vector3(startPos.x + x, startPos.y + y, startPos.z);
         }
 
         return path;
