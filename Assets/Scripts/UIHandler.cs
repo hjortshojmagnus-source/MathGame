@@ -5,18 +5,18 @@ using TMPro;
 public class UIHandler : MonoBehaviour
 {
     public TMP_InputField inputFieldA;
-    public TMP_InputField inputFieldB;
-    public TMP_InputField inputFieldC;
-    public TMP_InputField inputFieldD;
+    [SerializeField] private TMP_InputField inputFieldB;
+    [SerializeField] private TMP_InputField inputFieldC;
+    [SerializeField] private TMP_InputField inputFieldD;
     public Shoot shoot;
 
     public void SetParam()
     {
         
-            if (float.TryParse(inputField.text, out float value))
+            if (float.TryParse(inputFieldA.text, out float valueA))
             {
-                shoot.changeParameter(0, value); // 0 = paramA
-                Debug.Log("paramA sat til: " + value);
+                shoot.changeParameter(0, valueA); // 0 = paramA
+                Debug.Log("paramA sat til: " + valueA);
             }
             else
             {
@@ -26,10 +26,10 @@ public class UIHandler : MonoBehaviour
 
         if (inputFieldB)
         {
-            if (float.TryParse(inputField.text, out float value))
+            if (float.TryParse(inputFieldB.text, out float valueB))
             {
-                shoot.changeParameter(0, value); // 0 = paramB
-                Debug.Log("paramB sat til: " + value);
+                shoot.changeParameter(1, valueB); // 1 = paramB
+                Debug.Log("paramB sat til: " + valueB);
             }
             else
             {
@@ -39,10 +39,10 @@ public class UIHandler : MonoBehaviour
 
         if (inputFieldC)
         {
-            if (float.TryParse(inputField.text, out float value))
+            if (float.TryParse(inputFieldC.text, out float valueC))
             {
-                shoot.changeParameter(0, value); // 0 = paramC
-                Debug.Log("paramC sat til: " + value);
+                shoot.changeParameter(2, valueC); // 2 = paramC
+                Debug.Log("paramC sat til: " + valueC);
             }
             else
             {
@@ -52,10 +52,10 @@ public class UIHandler : MonoBehaviour
 
         if (inputFieldD)
         {
-            if (float.TryParse(inputField.text, out float value))
+            if (float.TryParse(inputFieldD.text, out float valueD))
             {
-                shoot.changeParameter(0, value); // 0 = paramD
-                Debug.Log("paramD sat til: " + value);
+                shoot.changeParameter(3, valueD); // 3 = paramD
+                Debug.Log("paramD sat til: " + valueD);
             }
             else
             {

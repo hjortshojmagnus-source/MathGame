@@ -80,10 +80,10 @@ public class Shoot : MonoBehaviour
         else
         {
             // Håndter parameterinput
-            if (Input.GetKeyDown(KeyCode.Alpha1)) StartInputMode(0);
+            /*if (Input.GetKeyDown(KeyCode.Alpha1)) StartInputMode(0);
             if (Input.GetKeyDown(KeyCode.Alpha2)) StartInputMode(1);
             if (Input.GetKeyDown(KeyCode.Alpha3)) StartInputMode(2);
-            if (Input.GetKeyDown(KeyCode.Alpha4)) StartInputMode(3);
+            if (Input.GetKeyDown(KeyCode.Alpha4)) StartInputMode(3);*/
 
             // Vælg formel
             if (Input.GetKeyDown(KeyCode.F)) SelectFormulaMode();
@@ -108,20 +108,22 @@ public class Shoot : MonoBehaviour
     }
 
     public void ShowMenu()
+{
+    if (formulaNames == null || formulaNames.Length == 0)
     {
-        Debug.Log("=== MATEMATIK SPIL ===");
-        Debug.Log("Nuværende formel: " + formulaNames[currentFormulaIndex] + " = " + currentFormula);
-        Debug.Log("\nDu kan redigere disse parametre:");
-
-        // Vis kun de parametre der bruges i formlen
-        if (currentFormula.Contains("a")) Debug.Log("Tryk '1' for at ændre parameter a");
-        if (currentFormula.Contains("b")) Debug.Log("Tryk '2' for at ændre parameter b");
-        if (currentFormula.Contains("c")) Debug.Log("Tryk '3' for at ændre parameter c");
-        if (currentFormula.Contains("d")) Debug.Log("Tryk '4' for at ændre parameter d");
-
-        Debug.Log("\nTryk 'F' for at vælge anden formel");
-        Debug.Log("Tryk 'K' for at skyde");
+        Debug.LogError("formulaNames er ikke initialiseret endnu!");
+        return;
     }
+
+    if (currentFormulaIndex < 0 || currentFormulaIndex >= formulaNames.Length)
+    {
+        Debug.LogError("currentFormulaIndex er ugyldig!");
+        return;
+    }
+
+    Debug.Log("=== MATEMATIK SPIL ===");
+    Debug.Log("Nuværende formel: " + formulaNames[currentFormulaIndex] + " = " + currentFormula);
+}
 
     void SelectFormulaMode()
     {
