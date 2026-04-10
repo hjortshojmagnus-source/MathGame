@@ -29,12 +29,14 @@ public class Shoot : MonoBehaviour
     new Formula("Sine", "a*sin(b*x + c) + d"),
     new Formula("Cosine", "a*cos(b*x+c)+d"),
     new Formula("Exponential", "a*exp(b*x)"),
-    new Formula("Square Root", "a*sqrt(x) + b")
+    new Formula("Square Root", "a*sqrt(x) + b"),
+    new Formula("BrugerInput", "g") // Denne formel bruger graf-parameteren direkte som y-værdi
 };
 
     private string[] formulaNames;
-    private int currentFormulaIndex = 0;
-    private string currentFormula = "a*x + b";
+    public string graf;
+    private Formula currentFormula;
+    public string userExpression = "g";
 
     public float startX = 0f;      // Start x-værdi
     public float endX = 10f;       // Slut x-værdi - skal være større end startX
@@ -48,53 +50,32 @@ public class Shoot : MonoBehaviour
 
     private string inputBuffer = "";
     private int currentParameter = 0; // 0=a, 1=b, 2=c, 3=d
-    private bool inputMode = false;
     private bool formulaSelectionMode = false;
 
     void Start()
+    {
+        playerPrefab = GameObject.Find("Player(Clone)");
+
+        formulaNames = new string[formulas.Count];
+        Debug.Log("GENERERER PATH MED GRAF: " + graf);
+
+        for (int i = 0; i < formulas.Count; i++)
+        {
+            formulaNames[i] = formulas[i].name;
+        }
+
+        currentFormula = formulas[0]; // default
+
+        ShowMenu();
+    }
+
+    public void SetGraf(string grafInput)
 {
-    playerPrefab = GameObject.Find("Player(Clone)");
+    graf = grafInput;
+    ActivateUserGraph();
 
-    formulaNames = new string[formulas.Count];
-
-    for (int i = 0; i < formulas.Count; i++)
-    {
-        formulaNames[i] = formulas[i].name;
-    }
-
-    currentFormula = formulas[0].expression;
-
-    ShowMenu();
+    Debug.Log("Ny graf sat: " + graf);
 }
-
-    void Update()
-    {
-        if (formulaSelectionMode)
-        {
-            HandleFormulaSelection();
-        }
-        else if (inputMode)
-        {
-            HandleParameterInput();
-        }
-        else
-        {
-            // Håndter parameterinput
-            /*if (Input.GetKeyDown(KeyCode.Alpha1)) StartInputMode(0);
-            if (Input.GetKeyDown(KeyCode.Alpha2)) StartInputMode(1);
-            if (Input.GetKeyDown(KeyCode.Alpha3)) StartInputMode(2);
-            if (Input.GetKeyDown(KeyCode.Alpha4)) StartInputMode(3);*/
-
-            // Vælg formel
-            if (Input.GetKeyDown(KeyCode.F)) SelectFormulaMode();
-
-            // Skyd
-            if (Input.GetKeyDown(KeyCode.K))
-            {
-                FireBullet();
-            }
-        }
-    }
     public void changeParameter(int paramIndex, float newValue)
     {
         switch (paramIndex)
@@ -103,81 +84,32 @@ public class Shoot : MonoBehaviour
             case 1: paramB = newValue; break;
             case 2: paramC = newValue; break;
             case 3: paramD = newValue; break;
+            case 4: graf = newValue.ToString(); break;
         }
 
     }
+
 
     public void ShowMenu()
 {
-    if (formulaNames == null || formulaNames.Length == 0)
-    {
-        Debug.LogError("formulaNames er ikke initialiseret endnu!");
-        return;
-    }
-
-    if (currentFormulaIndex < 0 || currentFormulaIndex >= formulaNames.Length)
-    {
-        Debug.LogError("currentFormulaIndex er ugyldig!");
-        return;
-    }
-
     Debug.Log("=== MATEMATIK SPIL ===");
-    Debug.Log("Nuværende formel: " + formulaNames[currentFormulaIndex] + " = " + currentFormula);
+    Debug.Log("Nuværende formel: " + currentFormula.name + " = " + currentFormula.expression);
 }
 
-    void SelectFormulaMode()
-    {
-        formulaSelectionMode = true;
-        Debug.Log("=== VÆLG FORMEL ===");
 
-        for (int i = 0; i < formulas.Count; i++)
-        {
-            Debug.Log($"Tryk '{i}' for {formulas[i].name}: {formulas[i].expression}");
-        }
-    }
 
-    void HandleFormulaSelection()
-    {
-        foreach (char c in Input.inputString)
-        {
-            if (char.IsDigit(c))
-            {
-                int index = int.Parse(c.ToString());
-
-                if (index >= 0 && index < formulas.Count)
-                {
-                    currentFormulaIndex = index;
-                    currentFormula = formulas[index].expression;
-
-                    paramA = 1f;
-                    paramB = 0f;
-                    paramC = 0f;
-                    paramD = 0f;
-
-                    Debug.Log($"Formel valgt: {formulas[index].name} = {currentFormula}");
-                    formulaSelectionMode = false;
-                    ShowMenu();
-                }
-                else
-                {
-                    Debug.LogError("Ugyldigt valg!");
-                }
-            }
-        }
-    }
 
     void StartInputMode(int paramIndex)
     {
         string paramName = new string[] { "a", "b", "c", "d" }[paramIndex];
 
         // Tjek om parameteren bruges i den valgte formel
-        if (!currentFormula.Contains(paramName))
+        if (!currentFormula.expression.Contains(paramName))
         {
             Debug.LogError($"Parameteren '{paramName}' bruges ikke i denne formel!");
             return;
         }
 
-        inputMode = true;
         currentParameter = paramIndex;
         inputBuffer = "";
 
@@ -185,60 +117,57 @@ public class Shoot : MonoBehaviour
         Debug.Log($"Redigerer parameter {paramName} (nuværende værdi: {currentValue}). Skriv værdi og tryk Enter.");
     }
 
-    void HandleParameterInput()
-    {
-        void HandleFormulaSelection()
-        {
-            foreach (char c in Input.inputString)
-            {
-                if (char.IsDigit(c))
-                {
-                    int index = int.Parse(c.ToString());
-
-                    if (index >= 0 && index < formulas.Count)
-                    {
-                        currentFormulaIndex = index;
-                        currentFormula = formulas[index].expression;
-
-                        paramA = 1f;
-                        paramB = 0f;
-                        paramC = 0f;
-                        paramD = 0f;
-
-                        Debug.Log($"Formel valgt: {formulas[index].name} = {currentFormula}");
-                        formulaSelectionMode = false;
-                        ShowMenu();
-                    }
-                    else
-                    {
-                        Debug.LogError("Ugyldigt valg!");
-                    }
-                }
-            }
-        }
-    }
 
     public void FireBullet()
-{
-    if (Bullet != null)
     {
-        playerPrefab = GameObject.Find("Player(Clone)");
-
-        Vector3 spawnPos = playerPrefab.transform.position;
-
-        GameObject newBullet = Instantiate(Bullet, spawnPos, transform.rotation);
-
-        Vector3[] path = GeneratePathFromFormula(spawnPos);
-
-        BulletScript bulletScript = newBullet.GetComponent<BulletScript>();
-        if (bulletScript != null)
+        if (Bullet != null)
         {
-            bulletScript.waypoints = path;
+            Debug.Log("SKYDER MED GRAF: " + graf);
+            Debug.Log("SKUD MED GRAF: " + graf);
+            Debug.Log("FORMULA INDEX: " + currentFormula);
+            playerPrefab = GameObject.Find("Player(Clone)");
+
+            Vector3 spawnPos = playerPrefab.transform.position;
+
+            GameObject newBullet = Instantiate(Bullet, spawnPos, transform.rotation);
+
+            Vector3[] path = GeneratePathFromFormula(spawnPos);
+            Debug.Log("GENERERER PATH MED GRAF: " + graf);
+
+            BulletScript bulletScript = newBullet.GetComponent<BulletScript>();
+            if (bulletScript != null)
+            {
+                bulletScript.waypoints = path;
+            }
+        }
+
+        if (enemy != null)
+            enemy.NextRound();
+    }
+    public void RefreshFormula()
+    {
+        Debug.Log("FORMEL OPDATERET");
+    }
+    public void ActivateUserGraph()
+{
+    currentFormula = null;
+
+    foreach (var f in formulas)
+    {
+        if (f.name == "BrugerInput")
+        {
+            currentFormula = f;
+            break;
         }
     }
 
-    if (enemy != null)
-        enemy.NextRound();
+    if (currentFormula == null)
+    {
+        Debug.LogError("BrugerInput ikke fundet i formulas-listen!");
+        return;
+    }
+
+    Debug.Log("Aktiv formel: " + currentFormula.name + " | expr: " + currentFormula.expression);
 }
 
     Vector3[] GeneratePathFromFormula(Vector3 startPos)
@@ -267,13 +196,13 @@ public class Shoot : MonoBehaviour
 
     float EvaluateCurrentFormula(float x)
     {
-        if (currentFormulaIndex < 0 || currentFormulaIndex >= formulas.Count)
-        {
-            Debug.LogError("Index fejl!");
-            return 0f;
-        }
+        if (currentFormula == null)
+{
+    Debug.LogError("Ingen formel valgt!");
+    return 0f;
+}
 
-        string name = formulas[currentFormulaIndex].name;
+        string name = currentFormula.name;
         float y = 0f;
 
         switch (name)
@@ -305,6 +234,41 @@ public class Shoot : MonoBehaviour
             case "Square Root":
                 y = x < 0f ? 0f : paramA * Mathf.Sqrt(x) + paramB;
                 break;
+            case "BrugerInput":
+
+                string expr = currentFormula.expression;
+
+                // 🔥 1. implicit multiplication (skal være først)
+                expr = InsertImplicitMultiplication(expr);
+
+                // 🔥 2. powers
+                expr = ConvertPowerOperator(expr);
+
+                // 🔥 3. variabler
+                expr = expr.Replace("x", x.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                expr = expr.Replace("a", paramA.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                expr = expr.Replace("b", paramB.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                expr = expr.Replace("c", paramC.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                expr = expr.Replace("d", paramD.ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+                // 🔥 4. math functions
+                expr = EvaluateMathFunctions(expr);
+
+                try
+                {
+                    System.Data.DataTable dt = new System.Data.DataTable();
+                    var result = dt.Compute(expr, null);
+
+                    y = result is double dVal ? (float)dVal : float.Parse(result.ToString());
+                }
+                catch
+                {
+                    Debug.LogError("Fejl i bruger-input graf!");
+                    y = 0f;
+                }
+
+                break;
+
 
             default:
                 y = 0f;
@@ -312,6 +276,19 @@ public class Shoot : MonoBehaviour
         }
 
         return y;
+    }
+    string ConvertPowerOperator(string expr)
+    {
+        // finder a^b mønstre (enkle cases)
+        System.Text.RegularExpressions.Regex regex =
+            new System.Text.RegularExpressions.Regex(@"(\w+|\d+(\.\d+)?)\s*\^\s*(\w+|\d+(\.\d+)?)");
+
+        while (regex.IsMatch(expr))
+        {
+            expr = regex.Replace(expr, "pow($1,$3)");
+        }
+
+        return expr;
     }
 
     string EvaluateMathFunctions(string expression)
@@ -457,6 +434,31 @@ public class Shoot : MonoBehaviour
         return expression;
     }
 
+    string InsertImplicitMultiplication(string expr)
+    {
+        expr = Regex.Replace(expr, @"sin", "sin");
+        expr = Regex.Replace(expr, @"cos", "cos");
+        expr = Regex.Replace(expr, @"tan", "tan");
+        expr = Regex.Replace(expr, @"sqrt", "sqrt");
+        expr = Regex.Replace(expr, @"log", "log");
+        expr = Regex.Replace(expr, @"exp", "exp");
+        // Fjern mellemrum først (gør parsing stabil)
+        expr = expr.Replace(" ", "");
+
+        // Regel 1: tal/variabel/")" efterfulgt af "("
+        expr = Regex.Replace(expr, @"(\d|\)|[a-zA-Z])\(", "$1*(");
+
+        // Regel 2: ")" efterfulgt af tal/variabel
+        expr = Regex.Replace(expr, @"\)(\d|[a-zA-Z])", ")*$1");
+
+        // Regel 3: tal efter variabel (x2 → x*2)
+        expr = Regex.Replace(expr, @"([a-zA-Z])(\d)", "$1*$2");
+
+        // Regel 4: variabel efter variabel (xy → x*y)
+        expr = Regex.Replace(expr, @"([a-zA-Z])([a-zA-Z])", "$1*$2");
+
+        return expr;
+    }
     float GetParameterValue(int paramIndex)
     {
         return paramIndex switch

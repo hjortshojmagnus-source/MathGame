@@ -8,6 +8,7 @@ public class UIHandler : MonoBehaviour
     [SerializeField] private TMP_InputField inputFieldB;
     [SerializeField] private TMP_InputField inputFieldC;
     [SerializeField] private TMP_InputField inputFieldD;
+    [SerializeField] private TMP_InputField inputFieldGraf;
     public Shoot shoot;
 
     public void SetParam()
@@ -63,4 +64,12 @@ public class UIHandler : MonoBehaviour
             }
         }
     }
+    public void SetGraf()
+{
+    string valueGraf = inputFieldGraf.text;
+
+    shoot.SetGraf(valueGraf);
+
+    Debug.Log("graf sat til: " + valueGraf);
+}
 }
