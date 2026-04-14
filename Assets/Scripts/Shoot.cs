@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
+using System;
 
 [System.Serializable]
 public class Formula
@@ -236,38 +237,11 @@ public class Shoot : MonoBehaviour
                 break;
             case "BrugerInput":
 
-                string expr = currentFormula.expression;
+    string expr = graf;
 
-                // 🔥 1. implicit multiplication (skal være først)
-                expr = InsertImplicitMultiplication(expr);
+    y = EvaluateExpression(expr, x);
 
-                // 🔥 2. powers
-                expr = ConvertPowerOperator(expr);
-
-                // 🔥 3. variabler
-                expr = expr.Replace("x", x.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                expr = expr.Replace("a", paramA.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                expr = expr.Replace("b", paramB.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                expr = expr.Replace("c", paramC.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                expr = expr.Replace("d", paramD.ToString(System.Globalization.CultureInfo.InvariantCulture));
-
-                // 🔥 4. math functions
-                expr = EvaluateMathFunctions(expr);
-
-                try
-                {
-                    System.Data.DataTable dt = new System.Data.DataTable();
-                    var result = dt.Compute(expr, null);
-
-                    y = result is double dVal ? (float)dVal : float.Parse(result.ToString());
-                }
-                catch
-                {
-                    Debug.LogError("Fejl i bruger-input graf!");
-                    y = 0f;
-                }
-
-                break;
+    break;
 
 
             default:
@@ -435,30 +409,43 @@ public class Shoot : MonoBehaviour
     }
 
     string InsertImplicitMultiplication(string expr)
-    {
-        expr = Regex.Replace(expr, @"sin", "sin");
-        expr = Regex.Replace(expr, @"cos", "cos");
-        expr = Regex.Replace(expr, @"tan", "tan");
-        expr = Regex.Replace(expr, @"sqrt", "sqrt");
-        expr = Regex.Replace(expr, @"log", "log");
-        expr = Regex.Replace(expr, @"exp", "exp");
-        // Fjern mellemrum først (gør parsing stabil)
-        expr = expr.Replace(" ", "");
+{
+    expr = expr.Replace(" ", "");
 
-        // Regel 1: tal/variabel/")" efterfulgt af "("
-        expr = Regex.Replace(expr, @"(\d|\)|[a-zA-Z])\(", "$1*(");
+    expr = expr.Replace("sin", "@SIN@");
+    expr = expr.Replace("cos", "@COS@");
+    expr = expr.Replace("tan", "@TAN@");
+    expr = expr.Replace("sqrt", "@SQRT@");
+    expr = expr.Replace("log", "@LOG@");
+    expr = expr.Replace("exp", "@EXP@");
 
-        // Regel 2: ")" efterfulgt af tal/variabel
-        expr = Regex.Replace(expr, @"\)(\d|[a-zA-Z])", ")*$1");
+    expr = Regex.Replace(expr, @"(\d|\)|[a-zA-Z])\(", "$1*(");
+    expr = Regex.Replace(expr, @"\)(\d|[a-zA-Z])", ")*$1");
+    expr = Regex.Replace(expr, @"([a-zA-Z])(\d)", "$1*$2");
 
-        // Regel 3: tal efter variabel (x2 → x*2)
-        expr = Regex.Replace(expr, @"([a-zA-Z])(\d)", "$1*$2");
+    expr = expr.Replace("@SIN@", "sin");
+    expr = expr.Replace("@COS@", "cos");
+    expr = expr.Replace("@TAN@", "tan");
+    expr = expr.Replace("@SQRT@", "sqrt");
+    expr = expr.Replace("@LOG@", "log");
+    expr = expr.Replace("@EXP@", "exp");
 
-        // Regel 4: variabel efter variabel (xy → x*y)
-        expr = Regex.Replace(expr, @"([a-zA-Z])([a-zA-Z])", "$1*$2");
+    return expr;
+}
 
-        return expr;
-    }
+string ConvertToUnityMath(string expr)
+{
+    expr = expr.Replace(" ", "");
+
+    expr = Regex.Replace(expr, @"(\w+|\d+)\^(\w+|\d+)", "Math.Pow($1,$2)");
+
+    expr = expr.Replace("sin", "Sin");
+    expr = expr.Replace("cos", "Cos");
+    expr = expr.Replace("tan", "Tan");
+    expr = expr.Replace("sqrt", "Sqrt");
+
+    return expr;
+}
     float GetParameterValue(int paramIndex)
     {
         return paramIndex switch
@@ -481,4 +468,48 @@ public class Shoot : MonoBehaviour
             case 3: paramD = value; break;
         }
     }
+    string HandleFunctions(string expr)
+{
+    expr = Regex.Replace(expr, @"sin\(", "Sin(");
+    expr = Regex.Replace(expr, @"cos\(", "Cos(");
+    expr = Regex.Replace(expr, @"tan\(", "Tan(");
+    expr = Regex.Replace(expr, @"sqrt\(", "Sqrt(");
+
+    expr = expr.Replace("Sin", "Sin");
+expr = expr.Replace("Cos", "Cos");
+expr = expr.Replace("Tan", "Tan");
+expr = expr.Replace("Sqrt", "Sqrt");
+
+    return expr;
+}
+    float EvaluateExpression(string expr, float xValue)
+{
+    expr = expr.Replace(",", ".");
+    expr = expr.Replace(" ", "");
+    expr = Regex.Replace(expr, @"(\d+(\.\d+)?)(?=x)", "$1*");
+    // 1. erstat x
+    expr = expr.Replace("x", xValue.ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+    // 2. implicit multiplication
+    expr = Regex.Replace(expr, @"(\d|\))(?=[a-zA-Z(])", "$1*");
+    expr = Regex.Replace(expr, @"([a-zA-Z])(?=\d|\()", "$1*");
+
+    // 3. power operator
+    expr = Regex.Replace(expr, @"(\d+(\.\d+)?|\))\^(\d+(\.\d+)?|\()", "Math.Pow($1,$3)");
+
+    try
+    {
+        System.Data.DataTable dt = new System.Data.DataTable();
+dt.Columns.Add("expr", typeof(double), expr);
+System.Data.DataRow row = dt.NewRow();
+dt.Rows.Add(row);
+
+return (float)(double)row["expr"];
+    }
+    catch (Exception e)
+    {
+        Debug.LogError("Parser fejl: " + expr + " | " + e.Message);
+        return 0f;
+    }
+}
 }
