@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
+using System.Globalization;
 using System;
 
 [System.Serializable]
@@ -270,7 +271,7 @@ public class Shoot : MonoBehaviour
         // Håndter sin(), cos(), tan(), sqrt(), abs(), exp(), log()
         System.Globalization.CultureInfo invariant = System.Globalization.CultureInfo.InvariantCulture;
         // Regexmønster for at finde funktioner som sin(x), cos(x) osv.
-        string pattern = @"(sin|cos|tan|sqrt|abs|exp|log)\s*\(";
+        string pattern = @"(sin|cos|tan|sqrt|abs|exp|log)\(";
 
         // Find matches og erstat dem iterativt indtil der ikke er flere
         while (true)
@@ -302,17 +303,10 @@ public class Shoot : MonoBehaviour
                 string innerExpression = expression.Substring(parenStart + 1, parenEnd - parenStart - 2 + 1);
                 string fullCall = expression.Substring(funcStart, parenEnd - funcStart);
 
-                // Evaluér det indre udtryk først
-                System.Data.DataTable dt = new System.Data.DataTable();
+                // Evaluér det indre udtryk først ved at kalde SimpleEval
                 try
                 {
-                    var innerResult = dt.Compute(innerExpression.Replace(',', '.'), null);
-
-                    float value;
-                    if (innerResult is double d)
-                        value = (float)d;
-                    else
-                        value = float.Parse(innerResult.ToString(), System.Globalization.NumberStyles.Float);
+                    float value = SimpleEval(innerExpression);
 
                     float result = funcName switch
                     {
@@ -338,7 +332,7 @@ public class Shoot : MonoBehaviour
         }
 
         // Håndel pow() særskilt da det har to parametre
-        pattern = @"pow\s*\(";
+        pattern = @"pow\(";
         while (true)
         {
             var matches = Regex.Matches(expression, pattern, RegexOptions.IgnoreCase);
@@ -384,14 +378,10 @@ public class Shoot : MonoBehaviour
                 string base1 = allArgs.Substring(0, commaPos);
                 string exponent = allArgs.Substring(commaPos + 1);
 
-                System.Data.DataTable dt = new System.Data.DataTable();
                 try
                 {
-                    var baseResult = dt.Compute(base1.Replace(',', '.'), null);
-                    var expResult = dt.Compute(exponent.Replace(',', '.'), null);
-
-                    float baseValue = baseResult is double bdd ? (float)bdd : float.Parse(baseResult.ToString(), System.Globalization.NumberStyles.Float);
-                    float expValue = expResult is double edd ? (float)edd : float.Parse(expResult.ToString(), System.Globalization.NumberStyles.Float);
+                    float baseValue = SimpleEval(base1);
+                    float expValue = SimpleEval(exponent);
 
                     float result = (float)System.Math.Pow(baseValue, expValue);
                     string rep = result.ToString(invariant);
@@ -419,7 +409,7 @@ public class Shoot : MonoBehaviour
     expr = expr.Replace("log", "@LOG@");
     expr = expr.Replace("exp", "@EXP@");
 
-    expr = Regex.Replace(expr, @"(\d|\)|[a-zA-Z])\(", "$1*(");
+    expr = Regex.Replace(expr, @"(\d|\))\(", "$1*(");   
     expr = Regex.Replace(expr, @"\)(\d|[a-zA-Z])", ")*$1");
     expr = Regex.Replace(expr, @"([a-zA-Z])(\d)", "$1*$2");
 
@@ -483,33 +473,125 @@ expr = expr.Replace("Sqrt", "Sqrt");
     return expr;
 }
     float EvaluateExpression(string expr, float xValue)
+    {
+        expr = expr.Replace(" ", "").ToLowerInvariant();
+
+// STEP 1: implicit multiplication
+expr = Regex.Replace(expr, @"(\d)\s*\(", "$1*(");
+expr = Regex.Replace(expr, @"\)\s*\(", ")*(");
+expr = Regex.Replace(expr, @"\)\s*(\d)", ")*$1");
+expr = Regex.Replace(expr, @"(\d)\s*(sin|cos|tan|sqrt|exp|log|abs)", "$1*$2");
+expr = Regex.Replace(expr, @"(sin|cos|tan|sqrt|exp|log|abs)\s*\(", "$1(");
+expr = Regex.Replace(expr, @"(\d)\s*x", "$1*x");
+expr = Regex.Replace(expr, @"x\s*(\d)", "x*$1");
+
+// STEP 2: safe x replace
+expr = Regex.Replace(
+    expr,
+    @"(?<![a-zA-Z0-9_])x(?![a-zA-Z0-9_])",
+    xValue.ToString(CultureInfo.InvariantCulture)
+);
+Debug.Log("AFTER x replace: " + expr);
+
+    expr = Regex.Replace(expr, @"(\d+(\.\d+)?|\))\s*\^\s*(\d+(\.\d+)?|\()", "pow($1,$3)");
+
+    expr = EvaluateMathFunctions(expr);
+if (Regex.IsMatch(expr, @"[a-zA-Z]"))
 {
-    expr = expr.Replace(",", ".");
-    expr = expr.Replace(" ", "");
-    expr = Regex.Replace(expr, @"(\d+(\.\d+)?)(?=x)", "$1*");
-    // 1. erstat x
-    expr = expr.Replace("x", xValue.ToString(System.Globalization.CultureInfo.InvariantCulture));
+    Debug.LogError("Uforløste tokens i expr: " + expr);
+    return 0f;
+}
 
-    // 2. implicit multiplication
-    expr = Regex.Replace(expr, @"(\d|\))(?=[a-zA-Z(])", "$1*");
-    expr = Regex.Replace(expr, @"([a-zA-Z])(?=\d|\()", "$1*");
-
-    // 3. power operator
-    expr = Regex.Replace(expr, @"(\d+(\.\d+)?|\))\^(\d+(\.\d+)?|\()", "Math.Pow($1,$3)");
-
+Debug.Log($"xValue = {xValue} | expr = {expr}");
+    return SimpleEval(expr);
+}
+float SimpleEval(string expr)
+{
     try
     {
-        System.Data.DataTable dt = new System.Data.DataTable();
-dt.Columns.Add("expr", typeof(double), expr);
-System.Data.DataRow row = dt.NewRow();
-dt.Rows.Add(row);
-
-return (float)(double)row["expr"];
+        // Brug en simpel parser i stedet for DataTable
+        return ParseAndEvaluate(expr);
     }
     catch (Exception e)
     {
-        Debug.LogError("Parser fejl: " + expr + " | " + e.Message);
+        Debug.LogError("Eval fejl: " + expr + " | " + e.Message);
         return 0f;
     }
 }
+
+float ParseAndEvaluate(string expr)
+{
+    // Simpel rekursiv descent parser for grundlæggende matematik
+    expr = expr.Replace(" ", "").Replace(",", ".");
+    return EvaluateExpressionRecursive(expr, 0, out _);
+}
+
+float EvaluateExpressionRecursive(string expr, int start, out int end)
+{
+    float result = EvaluateTerm(expr, start, out end);
+
+    while (end < expr.Length && (expr[end] == '+' || expr[end] == '-'))
+    {
+        char op = expr[end];
+        int nextStart = end + 1;
+        float nextTerm = EvaluateTerm(expr, nextStart, out end);
+        if (op == '+') result += nextTerm;
+        else result -= nextTerm;
+    }
+
+    return result;
+}
+
+float EvaluateTerm(string expr, int start, out int end)
+{
+    float result = EvaluateFactor(expr, start, out end);
+
+    while (end < expr.Length && (expr[end] == '*' || expr[end] == '/'))
+    {
+        char op = expr[end];
+        int nextStart = end + 1;
+        float nextFactor = EvaluateFactor(expr, nextStart, out end);
+        if (op == '*') result *= nextFactor;
+        else if (nextFactor != 0) result /= nextFactor;
+        else throw new DivideByZeroException();
+    }
+
+    return result;
+}
+
+float EvaluateFactor(string expr, int start, out int end)
+{
+    end = start;
+
+    // Håndter parenteser
+    if (expr[start] == '(')
+    {
+        int parenEnd;
+        float inner = EvaluateExpressionRecursive(expr, start + 1, out parenEnd);
+        if (parenEnd < expr.Length && expr[parenEnd] == ')')
+        {
+            end = parenEnd + 1;
+            return inner;
+        }
+        throw new Exception("Ubalancerede parenteser");
+    }
+
+    // Håndter tal
+    if (char.IsDigit(expr[start]) || expr[start] == '.')
+    {
+        int numEnd = start;
+        while (numEnd < expr.Length && (char.IsDigit(expr[numEnd]) || expr[numEnd] == '.'))
+            numEnd++;
+        string numStr = expr.Substring(start, numEnd - start);
+        if (float.TryParse(numStr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float num))
+        {
+            end = numEnd;
+            return num;
+        }
+        throw new Exception("Ugyldigt tal: " + numStr);
+    }
+
+    throw new Exception("Ugyldigt udtryk ved position " + start);
+}
+
 }

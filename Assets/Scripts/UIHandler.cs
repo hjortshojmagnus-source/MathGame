@@ -64,12 +64,20 @@ public class UIHandler : MonoBehaviour
             }
         }
     }
+    void Start()
+    {
+        if (inputFieldGraf != null)
+        {
+            inputFieldGraf.onEndEdit.AddListener(delegate { SetGraf(); });
+        }
+    }
+
     public void SetGraf()
-{
-    string valueGraf = inputFieldGraf.text;
+    {
+        string valueGraf = inputFieldGraf.text;
 
-    shoot.SetGraf(valueGraf);
+        shoot.SetGraf(valueGraf);
 
-    Debug.Log("graf sat til: " + valueGraf);
-}
+        Debug.Log("graf sat til: " + valueGraf);
+    }
 }
