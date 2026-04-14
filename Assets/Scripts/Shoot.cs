@@ -188,7 +188,7 @@ public class Shoot : MonoBehaviour
             if (y < minY) minY = y;
             if (y > maxY) maxY = y;
 
-            y = Mathf.Clamp(y, -100f, 100f);
+            y = Mathf.Clamp(y, -10f, 10f);
             path[i] = new Vector3(startPos.x + x, startPos.y + y, startPos.z);
         }
 
@@ -307,18 +307,33 @@ public class Shoot : MonoBehaviour
                 try
                 {
                     float value = SimpleEval(innerExpression);
+                    float result = 0f;
 
-                    float result = funcName switch
+                    if (float.IsNaN(value) || float.IsInfinity(value))
                     {
-                        "sin" => Mathf.Sin(value),
-                        "cos" => Mathf.Cos(value),
-                        "tan" => Mathf.Tan(value),
-                        "sqrt" => Mathf.Sqrt(value),
-                        "abs" => Mathf.Abs(value),
-                        "exp" => (float)System.Math.Exp(value),
-                        "log" => (float)System.Math.Log(value),
-                        _ => 0f
-                    };
+                        Debug.LogError($"Ugyldig værdi til {funcName}: {value}");
+                        result = 0f;
+                    }
+                    else
+                    {
+                        result = funcName switch
+                        {
+                            "sin" => Mathf.Sin(value),
+                            "cos" => Mathf.Cos(value),
+                            "tan" => Mathf.Tan(value),
+                            "sqrt" => value < 0f ? 0f : Mathf.Sqrt(value),
+                            "log" => value <= 0f ? 0f : Mathf.Log(value),
+                            "exp" => Mathf.Exp(value),
+                            "abs" => Mathf.Abs(value),
+                            _ => 0f
+                        };
+
+                        if (float.IsNaN(result) || float.IsInfinity(result))
+                        {
+                            Debug.LogError($"{funcName}({value}) gav ugyldig resultat: {result}");
+                            result = 0f;
+                        }
+                    }
 
                     string rep = result.ToString(invariant);
                     expression = expression.Substring(0, funcStart) + rep + expression.Substring(parenEnd);
@@ -382,8 +397,23 @@ public class Shoot : MonoBehaviour
                 {
                     float baseValue = SimpleEval(base1);
                     float expValue = SimpleEval(exponent);
+                    float result = 0f;
 
-                    float result = (float)System.Math.Pow(baseValue, expValue);
+                    if (float.IsNaN(baseValue) || float.IsInfinity(baseValue) || float.IsNaN(expValue) || float.IsInfinity(expValue))
+                    {
+                        Debug.LogError($"Ugyldige værdier i pow: base={baseValue}, exp={expValue}");
+                        result = 0f;
+                    }
+                    else
+                    {
+                        result = (float)System.Math.Pow(baseValue, expValue);
+                        if (float.IsNaN(result) || float.IsInfinity(result))
+                        {
+                            Debug.LogError($"pow gav ugyldig resultat: pow({baseValue},{expValue}) = {result}");
+                            result = 0f;
+                        }
+                    }
+
                     string rep = result.ToString(invariant);
                     expression = expression.Substring(0, powStart) + rep + expression.Substring(parenEnd);
                 }
@@ -496,6 +526,7 @@ Debug.Log("AFTER x replace: " + expr);
     expr = Regex.Replace(expr, @"(\d+(\.\d+)?|\))\s*\^\s*(\d+(\.\d+)?|\()", "pow($1,$3)");
 
     expr = EvaluateMathFunctions(expr);
+Debug.Log("AFTER math functions: " + expr);
 if (Regex.IsMatch(expr, @"[a-zA-Z]"))
 {
     Debug.LogError("Uforløste tokens i expr: " + expr);
@@ -562,6 +593,14 @@ float EvaluateTerm(string expr, int start, out int end)
 float EvaluateFactor(string expr, int start, out int end)
 {
     end = start;
+
+    // Håndter unære operatorer (+ og -)
+    if (expr[start] == '-' || expr[start] == '+')
+    {
+        char op = expr[start];
+        float factor = EvaluateFactor(expr, start + 1, out end);
+        return op == '-' ? -factor : factor;
+    }
 
     // Håndter parenteser
     if (expr[start] == '(')
