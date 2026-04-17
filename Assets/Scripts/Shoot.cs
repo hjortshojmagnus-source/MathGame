@@ -177,13 +177,16 @@ public class Shoot : MonoBehaviour
         Vector3[] path = new Vector3[pointCount];
         float step = (endX - startX) / (pointCount - 1);
 
+        // Beregn y-værdien ved startX for at få offset
+        float yAtStart = EvaluateCurrentFormula(startX);
+
         float minY = float.MaxValue;
         float maxY = float.MinValue;
 
         for (int i = 0; i < pointCount; i++)
         {
             float x = startX + (i * step);
-            float y = EvaluateCurrentFormula(x);
+            float y = EvaluateCurrentFormula(x) - yAtStart;  // Træk offset så grafen går gennem player
 
             if (y < minY) minY = y;
             if (y > maxY) maxY = y;
