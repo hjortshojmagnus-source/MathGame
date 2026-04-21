@@ -2870,6 +2870,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InputFieldVarReplace
   inputFieldA: {fileID: 896967264}
   inputFieldSkyd: {fileID: 1506212298}
+  inputFieldB: {fileID: 1137719857}
+  inputFieldC: {fileID: 1592411371}
+  inputFieldD: {fileID: 2012381707}
 --- !u!1 &881972397
 GameObject:
   m_ObjectHideFlags: 0
@@ -3908,9 +3911,9 @@ MonoBehaviour:
   m_OnEndEdit:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 708955985}
-        m_TargetAssemblyTypeName: UIHandler, Assembly-CSharp
-        m_MethodName: SetParam
+      - m_Target: {fileID: 708955988}
+        m_TargetAssemblyTypeName: InputFieldVarReplace, Assembly-CSharp
+        m_MethodName: ReplaceBInFormula
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -5558,7 +5561,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1490563882}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 708955988}
+        m_TargetAssemblyTypeName: InputFieldVarReplace, Assembly-CSharp
+        m_MethodName: ReplaceDInFormula
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1490563882
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7140,7 +7155,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1901359218}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 708955988}
+        m_TargetAssemblyTypeName: InputFieldVarReplace, Assembly-CSharp
+        m_MethodName: ReplaceCInFormula
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1901359218
 MonoBehaviour:
   m_ObjectHideFlags: 0

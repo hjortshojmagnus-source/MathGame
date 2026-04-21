@@ -22,18 +22,33 @@ public class Shoot : MonoBehaviour
     public GameObject Bullet;
     public EnemyScript enemy;
 
+    // Turn-baseret system
+    private bool _isPlayerTurn = true;
+    private bool isPlayerTurn
+    {
+        get { return _isPlayerTurn; }
+        set 
+        { 
+            Debug.Log($"isPlayerTurn ændret fra {_isPlayerTurn} til {value}. StackTrace: {System.Environment.StackTrace}");
+            _isPlayerTurn = value; 
+        }
+    }
+    private int roundNumber = 0;
+    private Vector3 lastPlayerShootPosition;
+    private GameObject lastPlayerBullet;
+
     // Foruddefinerede formler
     private List<Formula> formulas = new List<Formula>
-{
-    new Formula("Linear", "a*x + b"),
-    new Formula("Quadratic", "a*x*x + b*x + c"),
-    new Formula("Cubic", "a*x*x*x + b*x*x + c*x + d"),
-    new Formula("Sine", "a*sin(b*x + c) + d"),
-    new Formula("Cosine", "a*cos(b*x+c)+d"),
-    new Formula("Exponential", "a*exp(b*x)"),
-    new Formula("Square Root", "a*sqrt(x) + b"),
-    new Formula("BrugerInput", "g") // Denne formel bruger graf-parameteren direkte som y-værdi
-};
+    {
+        new Formula("Linear", "a*x + b"),
+        new Formula("Quadratic", "a*x*x + b*x + c"),
+        new Formula("Cubic", "a*x*x*x + b*x*x + c*x + d"),
+        new Formula("Sine", "a*sin(b*x + c) + d"),
+        new Formula("Cosine", "a*cos(b*x+c)+d"),
+        new Formula("Exponential", "a*exp(b*x)"),
+        new Formula("Square Root", "a*sqrt(x) + b"),
+        new Formula("BrugerInput", "g") // Denne formel bruger graf-parameteren direkte som y-værdi
+    };
 
     private string[] formulaNames;
     public string graf;
@@ -54,9 +69,32 @@ public class Shoot : MonoBehaviour
     private int currentParameter = 0; // 0=a, 1=b, 2=c, 3=d
     private bool formulaSelectionMode = false;
 
+    void Awake()
+    {
+        // Sørg for at spilleren kan skyde fra starten
+        isPlayerTurn = true;
+        Debug.Log("Awake() kaldt. isPlayerTurn = " + isPlayerTurn);
+    }
+
     void Start()
     {
+        Debug.Log("Start() kaldt. isPlayerTurn før = " + isPlayerTurn);
+        
         playerPrefab = GameObject.Find("Player(Clone)");
+
+        // Find enemy hvis den ikke er assignet fra Inspector
+        if (enemy == null)
+        {
+            enemy = FindObjectOfType<EnemyScript>();
+            if (enemy == null)
+            {
+                Debug.LogError("EnemyScript ikke fundet i scenen! Tjek at modstanderen er spawnet.");
+            }
+        }
+
+        // Spilleren starter med første skud
+        isPlayerTurn = true;
+        Debug.Log($"Spillet starter. isPlayerTurn sat til {isPlayerTurn}. Det er din tur! Skyd når du er klar...");
 
         formulaNames = new string[formulas.Count];
         Debug.Log("GENERERER PATH MED GRAF: " + graf);
@@ -69,15 +107,25 @@ public class Shoot : MonoBehaviour
         currentFormula = formulas[0]; // default
 
         ShowMenu();
+        
+        Debug.Log("Start() færdig. isPlayerTurn = " + isPlayerTurn);
     }
 
     public void SetGraf(string grafInput)
-{
-    graf = grafInput;
-    ActivateUserGraph();
-
-    Debug.Log("Ny graf sat: " + graf);
-}
+    {
+        Debug.Log($"SetGraf() kaldt med '{grafInput}'. isPlayerTurn før = {isPlayerTurn}");
+        graf = grafInput;
+        ActivateUserGraph();
+        Debug.Log($"SetGraf() færdig. isPlayerTurn efter = {isPlayerTurn}");
+        Debug.Log("Ny graf sat: " + graf);
+        
+        // Sørg for at spilleren kan skyde efter at have valgt graf
+        if (!isPlayerTurn)
+        {
+            isPlayerTurn = true;
+            Debug.Log("isPlayerTurn genoprettet til true efter graf valg.");
+        }
+    }
     public void changeParameter(int paramIndex, float newValue)
     {
         switch (paramIndex)
@@ -122,19 +170,30 @@ public class Shoot : MonoBehaviour
 
     public void FireBullet()
     {
+        Debug.Log($"FireBullet() kaldt. isPlayerTurn = {isPlayerTurn}");
+        
+        // Tjek om det er spillerens tur
+        if (!isPlayerTurn)
+        {
+            Debug.LogWarning("Det er ikke din tur! Vent på at modstanderen har skudt.");
+            return;
+        }
+
         if (Bullet != null)
         {
             Debug.Log("SKYDER MED GRAF: " + graf);
-            Debug.Log("SKUD MED GRAF: " + graf);
-            Debug.Log("FORMULA INDEX: " + currentFormula);
             playerPrefab = GameObject.Find("Player(Clone)");
 
             Vector3 spawnPos = playerPrefab.transform.position;
+            lastPlayerShootPosition = spawnPos; // GEM SPILLERS POSITION
 
             GameObject newBullet = Instantiate(Bullet, spawnPos, transform.rotation);
+            lastPlayerBullet = newBullet;
+            newBullet.tag = "Bullet"; // Sørg for at player bullet har det rigtige tag
+
+            Debug.Log("Player skyder fra position: " + spawnPos);
 
             Vector3[] path = GeneratePathFromFormula(spawnPos);
-            Debug.Log("GENERERER PATH MED GRAF: " + graf);
 
             BulletScript bulletScript = newBullet.GetComponent<BulletScript>();
             if (bulletScript != null)
@@ -143,34 +202,78 @@ public class Shoot : MonoBehaviour
             }
         }
 
+        // Spillerens tur er forbi
+        isPlayerTurn = false;
+        Debug.Log("Spillerens tur slut. isPlayerTurn = " + isPlayerTurn);
+    }
+
+    public void OnPlayerBulletDespawned()
+    {
+        Debug.Log("Spillers bullet despawnet. Enemy skyder nu!");
         if (enemy != null)
+        {
+            // Find aktuel player position
+            Vector3 currentPlayerPosition = playerPrefab.transform.position;
+            enemy.ShootAtPlayer(currentPlayerPosition);
             enemy.NextRound();
+            roundNumber++;
+        }
+        else
+        {
+            Debug.LogError("Enemy er null!");
+        }
+    }
+
+    public void OnEnemyBulletDespawned()
+    {
+        Debug.Log("Shoot.OnEnemyBulletDespawned() kaldt - Spilleren kan skyde igen!");
+        isPlayerTurn = true;
+        Debug.Log("isPlayerTurn sat tilbage til " + isPlayerTurn);
+        Debug.Log("=== RUNDE " + roundNumber + " ===");
+        Debug.Log("Det er nu din tur! Skyd når du er klar.");
     }
     public void RefreshFormula()
     {
         Debug.Log("FORMEL OPDATERET");
     }
+
+    public bool IsPlayerTurn()
+    {
+        return isPlayerTurn;
+    }
+
+    public int GetRoundNumber()
+    {
+        return roundNumber;
+    }
+
+    public void NotifyPlayerBulletDespawned()
+    {
+        OnPlayerBulletDespawned();
+    }
     public void ActivateUserGraph()
-{
-    currentFormula = null;
-
-    foreach (var f in formulas)
     {
-        if (f.name == "BrugerInput")
+        Debug.Log($"ActivateUserGraph() kaldt. isPlayerTurn før = {isPlayerTurn}");
+        currentFormula = null;
+
+        foreach (var f in formulas)
         {
-            currentFormula = f;
-            break;
+            if (f.name == "BrugerInput")
+            {
+                currentFormula = f;
+                break;
+            }
         }
-    }
 
-    if (currentFormula == null)
-    {
-        Debug.LogError("BrugerInput ikke fundet i formulas-listen!");
-        return;
-    }
+        if (currentFormula == null)
+        {
+            Debug.LogError("BrugerInput ikke fundet i formulas-listen!");
+            return;
+        }
 
-    Debug.Log("Aktiv formel: " + currentFormula.name + " | expr: " + currentFormula.expression);
-}
+        Debug.Log($"ActivateUserGraph() færdig. isPlayerTurn efter = {isPlayerTurn}");
+        Debug.Log("Aktiv formel: " + currentFormula.name + " | expr: " + currentFormula.expression);
+    }
 
     Vector3[] GeneratePathFromFormula(Vector3 startPos)
     {

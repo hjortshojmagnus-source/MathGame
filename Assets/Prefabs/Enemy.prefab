@@ -172,5 +172,5 @@ MonoBehaviour:
   Liv: 1
   enemyBulletPrefab: {fileID: 2880472418803415008, guid: 0f7cb4790f4c7264e8190601d8e2500c, type: 3}
   bulletSpeed: 10
-  maxRandomOffset: 2
-  offsetReductionPerRound: 0.2
+  maxRandomOffset: 15
+  offsetReductionPerRound: 1
