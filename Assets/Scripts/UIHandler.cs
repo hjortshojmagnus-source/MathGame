@@ -78,12 +78,12 @@ public class UIHandler : MonoBehaviour
         
         if (string.IsNullOrEmpty(valueGraf))
         {
-            Debug.LogWarning("⚠ UIHandler.SetGraf() - Tomt inputfelt, ignoreres");
+            Debug.LogWarning("UIHandler.SetGraf() - Tomt inputfelt, ignoreres");
             return;
         }
 
-        Debug.Log($"📝 UIHandler.SetGraf() kalder shoot.SetGraf() med: {valueGraf}");
+        Debug.Log($"UIHandler.SetGraf() kalder shoot.SetGraf() med: {valueGraf}");
         shoot.SetGraf(valueGraf);
-        Debug.Log("✓ Formel opdateret via UI");
+        Debug.Log("Formel opdateret via UI");
     }
 }

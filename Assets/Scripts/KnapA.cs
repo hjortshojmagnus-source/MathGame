@@ -11,7 +11,6 @@ public class KnapA : MonoBehaviour
         {
             shootScript.paramA = newValue;
             UnityEngine.Debug.Log("Parameter a changed to: " + newValue);
-            shootScript.ShowMenu();
         }
         else
         {

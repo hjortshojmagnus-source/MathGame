@@ -52,6 +52,7 @@ public class BulletScript : MonoBehaviour
             // Hvis alle punkter er passeret, ødelæg kulen
             if (currentWaypointIndex >= waypoints.Length)
             {
+                NotifyBulletDespawned();
                 Destroy(gameObject);
                 return;
             }
@@ -85,14 +86,13 @@ public class BulletScript : MonoBehaviour
         {
             Debug.Log("Player bullet destroyed - calling NotifyBulletDespawned");
         }
-        NotifyBulletDespawned();
+        
     }
     
     void NotifyBulletDespawned()
     {
-        bool actualEnemyBullet = CompareTag("EnemyBullet");
 
-        if (actualEnemyBullet)
+        if (isEnemyBullet)
         {
             Debug.Log("Enemy bullet despawnet! Kalder NotifyEnemyBulletDespawned()");
 
