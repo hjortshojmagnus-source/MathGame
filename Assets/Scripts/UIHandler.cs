@@ -74,10 +74,16 @@ public class UIHandler : MonoBehaviour
 
     public void SetGraf()
     {
-        string valueGraf = inputFieldGraf.text;
+        string valueGraf = inputFieldGraf.text.Trim();
+        
+        if (string.IsNullOrEmpty(valueGraf))
+        {
+            Debug.LogWarning("⚠ UIHandler.SetGraf() - Tomt inputfelt, ignoreres");
+            return;
+        }
 
+        Debug.Log($"📝 UIHandler.SetGraf() kalder shoot.SetGraf() med: {valueGraf}");
         shoot.SetGraf(valueGraf);
-
-        Debug.Log("graf sat til: " + valueGraf);
+        Debug.Log("✓ Formel opdateret via UI");
     }
 }

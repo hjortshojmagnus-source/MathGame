@@ -19,7 +19,7 @@ public class EnemyScript : MonoBehaviour
 
     void Start()
     {
-        shootController = FindObjectOfType<Shoot>();
+        shootController = FindFirstObjectByType<Shoot>();
         if (shootController == null)
         {
             Debug.LogError("FEJL: Shoot-controller ikke fundet!");
@@ -50,21 +50,20 @@ public class EnemyScript : MonoBehaviour
         Debug.Log("Enemy skyder fra position: " + enemyPosition);
 
         // Brug den gemte position fra spilleren
-        Vector3 targetPos = playerShootPosition;
+        Vector3 targetPos = new Vector3(playerShootPosition.x, playerShootPosition.y, enemyPosition.z);
 
         // Tilføj tilfældig offset inden for det nuværende område
-        float randomX = Random.Range(-currentMaxOffset, currentMaxOffset);
-        float randomY = Random.Range(-currentMaxOffset, currentMaxOffset);
-        Vector3 randomOffset = new Vector3(randomX, randomY, 0f);
+        Vector2 offset2D = Random.insideUnitCircle * currentMaxOffset;
+        Vector3 randomOffset = new Vector3(offset2D.x, offset2D.y, 0f);
 
         targetPos += randomOffset;
 
-        Debug.Log($"Random offset: X={randomX:F2}, Y={randomY:F2}, currentMaxOffset={currentMaxOffset:F2}");
+        Debug.Log($"Random offset: X={offset2D.x:F2}, Y={offset2D.y:F2}, currentMaxOffset={currentMaxOffset:F2}");
         Debug.Log($"Runde {roundsElapsed}: AI skyder mod position {targetPos} (offset område: ±{currentMaxOffset:F1})");
 
         // Instantiér bullet fra enemy position
         GameObject bullet = Instantiate(enemyBulletPrefab, enemyPosition, Quaternion.identity);
-        bullet.tag = "EnemyBullet"; // Sørg for at bullet har det rigtige tag
+        bullet.tag = "EnemyBullet";
 
         if (bullet == null)
         {
@@ -110,13 +109,24 @@ public class EnemyScript : MonoBehaviour
     public void NotifyEnemyBulletDespawned()
     {
         Debug.Log("EnemyScript.NotifyEnemyBulletDespawned() kaldt, shootController = " + shootController);
+        if (shootController == null)
+        {
+            shootController = FindFirstObjectByType<Shoot>();
+        }
         if (shootController != null)
         {
             shootController.OnEnemyBulletDespawned();
         }
         else
         {
-            Debug.LogError("shootController er null i NotifyEnemyBulletDespawned!");
+            Debug.LogWarning("shootController er null i NotifyEnemyBulletDespawned! Forsøger direkte tur-skift.");
+            // Fallback: søg alle Shoot-components og sæt deres isPlayerTurn direkte hvis muligt
+            Shoot[] allShoots = FindObjectsByType<Shoot>(FindObjectsSortMode.None);
+            if (allShoots.Length > 0)
+            {
+                allShoots[0].OnEnemyBulletDespawned();
+                Debug.Log("Fallback: Tur givet tilbage til spiller via direkte Shoot-kald.");
+            }
         }
     }
 

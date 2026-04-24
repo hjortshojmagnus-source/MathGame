@@ -20,12 +20,24 @@ public class SkydKnap : MonoBehaviour
     {
         if (shootScript != null)
         {
-            Debug.Log("Skyd button pressed!");
+            Debug.Log("=== SKYD KNAP TRYKKET ===");
+            // Læs den aktuelle formel fra inputfeltet
+            InputFieldVarReplace inputHandler = FindFirstObjectByType<InputFieldVarReplace>();
+            if (inputHandler != null && inputHandler.inputFieldSkyd != null)
+            {
+                string formula = inputHandler.inputFieldSkyd.text.Trim();
+                if (!string.IsNullOrEmpty(formula))
+                {
+                    Debug.Log($"📝 Opdaterer formel til: {formula}");
+                    shootScript.SetGraf(formula);
+                }
+            }
+            Debug.Log("🎯 Kalder FireBullet()...");
             shootScript.FireBullet();
         }
         else
         {
-            Debug.LogError("Shoot script not set!");
+            Debug.LogError("❌ Shoot script not set!");
         }
     }
 }
