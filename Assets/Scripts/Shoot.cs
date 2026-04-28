@@ -21,9 +21,10 @@ public class Shoot : MonoBehaviour
     public GameObject playerPrefab;
     public GameObject Bullet;
     public EnemyScript enemy;
+    public GameObject EnemyBullet;
 
     // Turn-baseret system
-    private bool _isPlayerTurn = true;
+    public bool _isPlayerTurn = true;
     private int roundNumber = 0;
     private Vector3 lastPlayerShootPosition;
     private GameObject lastPlayerBullet;
@@ -46,8 +47,12 @@ public class Shoot : MonoBehaviour
     private Formula currentFormula;
     public string userExpression = "g";
 
+    [Header("Game Variables")]
+    public float variableMultiplier = 1f; // kan bruges som 'variable' i bruger-input eller multipliceres med built-in formler
+    public float enemyTurnDelay = 0.15f; // kort delay før enemy skyder (sikrer timing)
+
     public float startX = 0f;      // Start x-værdi
-    public float endX = 10f;       // Slut x-værdi - skal være større end startX
+    public float endX = 30f;       // Slut x-værdi - skal være større end startX (øget for længere skud)
     public int pointCount = 100;   // Antal punkt på linjen - øget for glatere linje
 
     // Parameterværdier som spilleren kan ændre
@@ -72,7 +77,7 @@ public class Shoot : MonoBehaviour
         playerPrefab = GameObject.Find("Player(Clone)");
         if (playerPrefab == null)
         {
-            Debug.LogWarning("⚠ Player(Clone) ikke fundet i Start()");
+            Debug.LogWarning("Player(Clone) ikke fundet i Start()");
         }
 
         // Find enemy hvis den ikke er assignet fra Inspector
@@ -107,6 +112,14 @@ public class Shoot : MonoBehaviour
 
         currentFormula = formulas[0]; // default
         Debug.Log("Standardformel sat til: " + currentFormula.name);
+    }
+    void Update()
+    {
+        EnemyBullet = GameObject.Find("EnemyBullet(Clone)");
+        if (EnemyBullet)
+        {
+            _isPlayerTurn = true;
+        }
     }
 
     public void SetGraf(string grafInput)
@@ -171,7 +184,7 @@ public class Shoot : MonoBehaviour
 
         if (Bullet != null)
         {
-            Debug.Log("✓ Spilleren skyder. SKYDER MED GRAF: " + graf);
+            Debug.Log("Spilleren skyder. SKYDER MED GRAF: " + graf);
             playerPrefab = GameObject.Find("Player(Clone)");
 
             if (playerPrefab == null)
@@ -196,12 +209,14 @@ public class Shoot : MonoBehaviour
             {
                 bulletScript.waypoints = path;
                 Debug.Log("BulletScript assignet med waypoints.");
-                _isPlayerTurn = false;
             }
             else
             {
                 Debug.LogError("BulletScript ikke fundet på instansieret bullet!");
             }
+            // Når spilleren har skudt, lås turen med det samme (uanset om BulletScript blev fundet)
+            _isPlayerTurn = false;
+            Debug.Log("TURN CHANGE: _isPlayerTurn = false (player fired bullet)");
         }
 
     }
@@ -210,19 +225,98 @@ public class Shoot : MonoBehaviour
     {
         Debug.Log("=== PLAYER-BULLET DESPAWNED ===");
         Debug.Log("✓ Spillers bullet despawnet. Enemy skal skyde nu!");
+        // Brug den gemte spawn-position fra spillerens skud
+        Vector3 targetPosition = lastPlayerShootPosition;
+        Debug.Log("✓ Target position for enemy (player's last shoot pos): " + targetPosition);
+
         if (enemy != null)
         {
-            // Find aktuel player position
-            Vector3 currentPlayerPosition = playerPrefab.transform.position;
-            Debug.Log("✓ Player-position: " + currentPlayerPosition);
-            enemy.ShootAtPlayer(currentPlayerPosition);
-            enemy.NextRound();
-            roundNumber++;
-            Debug.Log("✓ Enemy.ShootAtPlayer() kaldt. Runde: " + roundNumber);
+            // Start enemy turn as a coroutine to avoid potential timing issues
+            StartCoroutine(EnemyTurnRoutine(targetPosition));
         }
         else
         {
-            Debug.LogError("❌ Enemy er null i OnPlayerBulletDespawned!");
+            Debug.LogWarning("Enemy er null i OnPlayerBulletDespawned! Tilbagefører tur til spiller.");
+            _isPlayerTurn = true; // sikre at spilleren ikke låses ude hvis enemy mangler
+        }
+
+        // Ryd op i referencer
+        lastPlayerBullet = null;
+    }
+
+    System.Collections.IEnumerator EnemyTurnRoutine(Vector3 targetPosition)
+    {
+        Debug.Log("Starter enemy turn coroutine...");
+        yield return new WaitForSeconds(enemyTurnDelay);
+
+        if (enemy == null)
+        {
+            Debug.LogWarning("Enemy mangler ved EnemyTurnRoutine - giver tur tilbage til spiller.");
+            _isPlayerTurn = true;
+            yield break;
+        }
+
+        bool enemyFired = false;
+
+        // Foretrukket: lad EnemyScript håndtere skuddet hvis den har en prefab
+        if (enemy.enemyBulletPrefab != null)
+        {
+            enemy.ShootAtPlayer(targetPosition);
+            enemyFired = true;
+            _isPlayerTurn = true;
+            Debug.Log("TURN CHANGE: enemy shot instantiated via enemy prefab; _isPlayerTurn = true");
+        }
+        else
+        {
+            // Fallback: brug player's Bullet-prefab hvis muligt og marker som enemy-bullet
+            if (Bullet != null)
+            {
+                Vector3 enemyPos = enemy.transform.position;
+
+                // Beregn et rimeligt offset baseret på enemy's public max/offsetReduction og vores runde-tæller
+                float approxCurrentMax = Mathf.Max(0f, enemy.maxRandomOffset - enemy.offsetReductionPerRound * roundNumber);
+                Vector2 offset2D = UnityEngine.Random.insideUnitCircle * approxCurrentMax;
+                Vector3 randomOffset = new Vector3(offset2D.x, offset2D.y, 0f);
+
+                Vector3 fallbackTarget = new Vector3(targetPosition.x, targetPosition.y, enemyPos.z) + randomOffset;
+
+                GameObject fb = Instantiate(Bullet, enemyPos, Quaternion.identity);
+                fb.tag = "EnemyBullet";
+                BulletScript bs = fb.GetComponent<BulletScript>();
+                if (bs != null)
+                {
+                    bs.waypoints = new Vector3[] { enemyPos, fallbackTarget };
+                    enemyFired = true;
+                    _isPlayerTurn = true;
+                    Debug.Log("TURN CHANGE: enemy bullet instantiated from fallback prefab; _isPlayerTurn = true");
+                    Debug.Log("Fallback: Enemy bullet instantiated from player's Bullet prefab.");
+                }
+                else
+                {
+                    Debug.LogError("Fallback enemy bullet mangler BulletScript!");
+                    Destroy(fb);
+                }
+            }
+            else
+            {
+                Debug.LogWarning("Ingen enemy prefab og ingen player Bullet til fallback.");
+            }
+        }
+
+        if (enemyFired)
+        {
+            // Giv straks tur tilbage til spilleren når enemy har affyret sit skud
+            _isPlayerTurn = true;
+            Debug.Log("✓ Enemy fired - spillerens tur givet tilbage.");
+
+            enemy.NextRound();
+            roundNumber++;
+            Debug.Log("✓ Enemy shot executed. Runde: " + roundNumber);
+        }
+        else
+        {
+            Debug.LogWarning("Enemy kunne ikke skyde. Giver tur tilbage til spiller.");
+            _isPlayerTurn = true;
         }
     }
 
@@ -232,6 +326,7 @@ public class Shoot : MonoBehaviour
         Debug.Log("Shoot.OnEnemyBulletDespawned() kaldt");
         Debug.Log("✓ Spilleren kan skyde igen!");
         _isPlayerTurn = true;
+        Debug.Log("TURN CHANGE: _isPlayerTurn = true (enemy bullet despawned)");
         Debug.Log("_isPlayerTurn = TRUE");
         Debug.Log("=== RUNDE " + roundNumber + " ===");
         Debug.Log("DET ER NU SPILLERENS TUR! Skyd når du er klar.");
@@ -351,6 +446,9 @@ public class Shoot : MonoBehaviour
                 y = 0f;
                 break;
         }
+
+        // Anvend global variable-multiplikator hvis sat
+        y *= variableMultiplier;
 
         return y;
     }
@@ -607,6 +705,9 @@ expr = expr.Replace("Sqrt", "Sqrt");
     float EvaluateExpression(string expr, float xValue)
     {
         expr = expr.Replace(" ", "").ToLowerInvariant();
+
+// STEP 0: replace 'variable' token with numeric value (allows expressions like 'variable*a*x')
+expr = Regex.Replace(expr, @"\bvariable\b", variableMultiplier.ToString(CultureInfo.InvariantCulture));
 
 // STEP 1: implicit multiplication
 expr = Regex.Replace(expr, @"(\d)\s*\(", "$1*(");

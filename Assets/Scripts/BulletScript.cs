@@ -3,7 +3,8 @@ using UnityEngine;
 public class BulletScript : MonoBehaviour
 {
     public Vector3[] waypoints; // Punkter som kulen skal følge
-    public float speed = 5f;
+    public float speed = 12f;
+    public float maxLifetime = 6f; // seconds before auto-despawn
     
     private int currentWaypointIndex = 0;
     private float distanceTraveled = 0f;
@@ -13,6 +14,8 @@ public class BulletScript : MonoBehaviour
     private bool isEnemyBullet = false;
     private Shoot shootController;
     private EnemyScript enemyScript;
+    private bool hasNotifiedDespawn = false;
+    private float lifeTimer = 0f;
 
     void Start()
     {
@@ -20,23 +23,35 @@ public class BulletScript : MonoBehaviour
         {
             SetDirectionToNextWaypoint();
         }
-
         isEnemyBullet = CompareTag("EnemyBullet");
+
+        // Always capture references to Shoot and EnemyScript for reliable callbacks
+        shootController = FindFirstObjectByType<Shoot>();
+        enemyScript = FindFirstObjectByType<EnemyScript>();
 
         if (!isEnemyBullet)
         {
-            shootController = FindFirstObjectByType<Shoot>();
             Debug.Log("Player bullet spawned");
         }
         else
         {
-            enemyScript = FindFirstObjectByType<EnemyScript>();
             Debug.Log("Enemy bullet spawned");
         }
+
+        lifeTimer = maxLifetime;
     }
 
     void Update()
     {
+        // Countdown lifetime even if waypoints are missing
+        lifeTimer -= Time.deltaTime;
+        if (lifeTimer <= 0f)
+        {
+            NotifyBulletDespawned();
+            Destroy(gameObject);
+            return;
+        }
+
         if (waypoints == null || waypoints.Length <= 1)
             return;
 
@@ -78,6 +93,8 @@ public class BulletScript : MonoBehaviour
     
     void OnDestroy()
     {
+        if (hasNotifiedDespawn) return;
+
         if (isEnemyBullet)
         {
             Debug.Log("Enemy bullet destroyed - calling NotifyBulletDespawned");
@@ -86,20 +103,32 @@ public class BulletScript : MonoBehaviour
         {
             Debug.Log("Player bullet destroyed - calling NotifyBulletDespawned");
         }
-        
+
+        // Ensure turn notification occurs even if bullet was destroyed via collision
+        NotifyBulletDespawned();
     }
     
     void NotifyBulletDespawned()
     {
+        if (hasNotifiedDespawn) return;
+        hasNotifiedDespawn = true;
 
         if (isEnemyBullet)
         {
-            Debug.Log("Enemy bullet despawnet! Kalder NotifyEnemyBulletDespawned()");
+            Debug.Log("Enemy bullet despawnet! Notifying Shoot controller or EnemyScript.");
+
+            // Prefer direct Shoot controller notification for reliability
+            if (shootController == null)
+                shootController = FindFirstObjectByType<Shoot>();
+
+            if (shootController != null)
+            {
+                shootController.OnEnemyBulletDespawned();
+                return;
+            }
 
             if (enemyScript == null)
-            {
                 enemyScript = FindFirstObjectByType<EnemyScript>();
-            }
 
             if (enemyScript != null)
             {
@@ -107,47 +136,26 @@ public class BulletScript : MonoBehaviour
                 return;
             }
 
-            // Fallback: direkte til Shoot-controller, hvis EnemyScript ikke er tilgængelig
-            Debug.LogWarning("EnemyScript ikke fundet. Bruger direkte Shoot-kald.");
-            Shoot fallbackShoot = FindFirstObjectByType<Shoot>();
-            if (fallbackShoot != null)
-            {
-                fallbackShoot.OnEnemyBulletDespawned();
-            }
-            else
-            {
-                Debug.LogError("Ingen Shoot-controller fundet til at afslutte enemy turen!");
-            }
+            Debug.LogError("Ingen Shoot eller EnemyScript fundet til at afslutte enemy turen!");
         }
         else
         {
             Debug.Log("Player bullet despawnet! Kalder NotifyPlayerBulletDespawned()");
+
             if (shootController == null)
-            {
                 shootController = FindFirstObjectByType<Shoot>();
-                if (shootController == null)
-                {
-                    // Sidste resort: søg gennem alleGameObjects
-                    Shoot[] allShooters = FindObjectsByType<Shoot>(FindObjectsSortMode.None);
-                    if (allShooters.Length > 0)
-                    {
-                        shootController = allShooters[0];
-                    }
-                }
-            }
+
             if (shootController != null)
             {
                 shootController.NotifyPlayerBulletDespawned();
+                return;
             }
-            else
+
+            Debug.LogWarning("Shoot-controller ikke fundet ved bullet-despawn. Forsøger fallback via EnemyScript.");
+            var allEnemies = FindObjectsByType<EnemyScript>(FindObjectsSortMode.None);
+            if (allEnemies.Length > 0)
             {
-                Debug.LogWarning("Shoot-controller ikke fundet ved bullet-despawn. Forsøger direkte tur-ændring.");
-                // Fallback: sæt player turn direkte hvis vi ikke kan finde shootController
-                var allEnemies = FindObjectsByType<EnemyScript>(FindObjectsSortMode.None);
-                if (allEnemies.Length > 0)
-                {
-                    allEnemies[0].NotifyEnemyBulletDespawned();
-                }
+                allEnemies[0].NotifyEnemyBulletDespawned();
             }
         }
     }
