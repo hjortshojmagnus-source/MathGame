@@ -107,12 +107,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e43acbb08602db478d29350d404a63a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  playerPrefab: {fileID: 0}
   Bullet: {fileID: 2880472418803415008, guid: 2a22c5ecb9acb4d458103aa8b88f93dc, type: 3}
   enemy: {fileID: 4701912515404241822, guid: 8bc9eb00c45cf7946a7e57e774443de6, type: 3}
-  playerTransform: {fileID: 4372367883632278015}
+  EnemyBullet: {fileID: 0}
+  _isPlayerTurn: 1
+  graf: 
+  userExpression: g
+  variableMultiplier: 1
+  enemyTurnDelay: 0.15
   startX: 0
   endX: 10
-  pointCount: 50
+  pointCount: 100
   paramA: 1
   paramB: 0
   paramC: 0

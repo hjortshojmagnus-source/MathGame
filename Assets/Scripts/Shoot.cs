@@ -22,9 +22,11 @@ public class Shoot : MonoBehaviour
     public GameObject Bullet;
     public EnemyScript enemy;
     public GameObject EnemyBullet;
+    private int test = 1;
 
     // Turn-baseret system
-    public bool _isPlayerTurn = true;
+    public bool _isPlayerTurn;
+    public bool IsPlayerTurn;
     private int roundNumber = 0;
     private Vector3 lastPlayerShootPosition;
     private GameObject lastPlayerBullet;
@@ -53,7 +55,7 @@ public class Shoot : MonoBehaviour
 
     public float startX = 0f;      // Start x-værdi
     public float endX = 30f;       // Slut x-værdi - skal være større end startX (øget for længere skud)
-    public int pointCount = 100;   // Antal punkt på linjen - øget for glatere linje
+    public int pointCount = 150;   // Antal punkt på linjen - øget for glatere linje
 
     // Parameterværdier som spilleren kan ændre
     public float paramA = 1f;      // Parameter a
@@ -61,9 +63,7 @@ public class Shoot : MonoBehaviour
     public float paramC = 0f;      // Parameter c
     public float paramD = 0f;      // Parameter d
 
-    private string inputBuffer = "";
-    private int currentParameter = 0; // 0=a, 1=b, 2=c, 3=d
-    private bool formulaSelectionMode = false;
+    //private int currentParameter = 0; // 0=a, 1=b, 2=c, 3=d
 
     void Awake()
     {
@@ -73,7 +73,7 @@ public class Shoot : MonoBehaviour
 
     void Start()
     {
-        
+        IsPlayerTurn = true;
         playerPrefab = GameObject.Find("Player(Clone)");
         if (playerPrefab == null)
         {
@@ -113,14 +113,16 @@ public class Shoot : MonoBehaviour
         currentFormula = formulas[0]; // default
         Debug.Log("Standardformel sat til: " + currentFormula.name);
     }
-    void Update()
+    /*void Update()
     {
         EnemyBullet = GameObject.Find("EnemyBullet(Clone)");
-        if (EnemyBullet)
+        if (EnemyBullet != null && !_isPlayerTurn)
         {
+            
+            Debug.Log("EnemyBullet fundet i Update()");
             _isPlayerTurn = true;
         }
-    }
+    }*/
 
     public void SetGraf(string grafInput)
     {
@@ -144,7 +146,7 @@ public class Shoot : MonoBehaviour
 
 
 
-    void StartInputMode(int paramIndex)
+    /*void StartInputMode(int paramIndex)
     {
         string paramName = new string[] { "a", "b", "c", "d" }[paramIndex];
 
@@ -160,7 +162,7 @@ public class Shoot : MonoBehaviour
 
         float currentValue = GetParameterValue(paramIndex);
         Debug.Log($"Redigerer parameter {paramName} (nuværende værdi: {currentValue}). Skriv værdi og tryk Enter.");
-    }
+    }*/
 
 
     public void FireBullet()
@@ -170,11 +172,11 @@ public class Shoot : MonoBehaviour
         Debug.Log($"graf = {graf}");
         
         // Tjek om det er spillerens tur
-        if (_isPlayerTurn == false)
+        /*if (IsPlayerTurn == false && IsPlayerTurn != true)
         {
             Debug.LogWarning("Det er IKKE din tur! Vent på at modstanderen har skudt.");
             return;
-        }
+        }*/
 
         if (Bullet == null)
         {
@@ -215,20 +217,19 @@ public class Shoot : MonoBehaviour
                 Debug.LogError("BulletScript ikke fundet på instansieret bullet!");
             }
             // Når spilleren har skudt, lås turen med det samme (uanset om BulletScript blev fundet)
-            _isPlayerTurn = false;
-            Debug.Log("TURN CHANGE: _isPlayerTurn = false (player fired bullet)");
+            
         }
+        _isPlayerTurn = false;
+        IsPlayerTurn = false;
+        Debug.Log("TURN CHANGE: _isPlayerTurn = false (player fired bullet)");
 
     }
 
     public void OnPlayerBulletDespawned()
     {
         Debug.Log("=== PLAYER-BULLET DESPAWNED ===");
-        Debug.Log("✓ Spillers bullet despawnet. Enemy skal skyde nu!");
         // Brug den gemte spawn-position fra spillerens skud
         Vector3 targetPosition = lastPlayerShootPosition;
-        Debug.Log("✓ Target position for enemy (player's last shoot pos): " + targetPosition);
-
         if (enemy != null)
         {
             // Start enemy turn as a coroutine to avoid potential timing issues
@@ -269,7 +270,7 @@ public class Shoot : MonoBehaviour
         else
         {
             // Fallback: brug player's Bullet-prefab hvis muligt og marker som enemy-bullet
-            if (Bullet != null)
+            /*if (Bullet != null)
             {
                 Vector3 enemyPos = enemy.transform.position;
 
@@ -300,18 +301,18 @@ public class Shoot : MonoBehaviour
             else
             {
                 Debug.LogWarning("Ingen enemy prefab og ingen player Bullet til fallback.");
-            }
+            }*/
         }
 
         if (enemyFired)
         {
             // Giv straks tur tilbage til spilleren når enemy har affyret sit skud
             _isPlayerTurn = true;
-            Debug.Log("✓ Enemy fired - spillerens tur givet tilbage.");
+            Debug.Log("Enemy fired - spillerens tur givet tilbage.");
 
             enemy.NextRound();
             roundNumber++;
-            Debug.Log("✓ Enemy shot executed. Runde: " + roundNumber);
+            Debug.Log("Enemy shot executed. Runde: " + roundNumber);
         }
         else
         {
@@ -323,18 +324,13 @@ public class Shoot : MonoBehaviour
     public void OnEnemyBulletDespawned()
     {
         Debug.Log("=== ENEMY-BULLET DESPAWNED ===");
-        Debug.Log("Shoot.OnEnemyBulletDespawned() kaldt");
-        Debug.Log("✓ Spilleren kan skyde igen!");
         _isPlayerTurn = true;
-        Debug.Log("TURN CHANGE: _isPlayerTurn = true (enemy bullet despawned)");
-        Debug.Log("_isPlayerTurn = TRUE");
-        Debug.Log("=== RUNDE " + roundNumber + " ===");
-        Debug.Log("DET ER NU SPILLERENS TUR! Skyd når du er klar.");
+        IsPlayerTurn = true;
     }
-    public void RefreshFormula()
+    /*public void RefreshFormula()
     {
         Debug.Log("FORMEL OPDATERET");
-    }
+    }*/
 
 
     public int GetRoundNumber()
@@ -724,19 +720,19 @@ expr = Regex.Replace(
     @"(?<![a-zA-Z0-9_])x(?![a-zA-Z0-9_])",
     xValue.ToString(CultureInfo.InvariantCulture)
 );
-Debug.Log("AFTER x replace: " + expr);
+
 
     expr = Regex.Replace(expr, @"(\d+(\.\d+)?|\))\s*\^\s*(\d+(\.\d+)?|\()", "pow($1,$3)");
 
     expr = EvaluateMathFunctions(expr);
-Debug.Log("AFTER math functions: " + expr);
+
 if (Regex.IsMatch(expr, @"[a-zA-Z]"))
 {
     Debug.LogError("Uforløste tokens i expr: " + expr);
     return 0f;
 }
 
-Debug.Log($"xValue = {xValue} | expr = {expr}");
+
     return SimpleEval(expr);
 }
 float SimpleEval(string expr)

@@ -8,8 +8,8 @@ public class MapGenerator : MonoBehaviour
     public GameObject treePrefab;
     public GameObject enemyPrefab;
     public GameObject playerPrefab;
+    public GameObject skydKnap;
     public float minPlayerEnemyDistance = 5f; // Minimum afstand mellem spiller og fjende ved spawn
-    public SkydKnap skydKnap;
     public GameObject currentPlayer; // gem reference
 
     [Header("Spawn indstillinger")]
@@ -24,7 +24,7 @@ public class MapGenerator : MonoBehaviour
         // Hvis kamera ikke er sat i inspector, bruger vi Main Camera
         if (mainCamera == null)
             mainCamera = Camera.main;
-
+        skydKnap = GameObject.Find("KnapSkyd");
         GenerateObjects();
         spawnCharacter();
     }
@@ -95,7 +95,7 @@ public class MapGenerator : MonoBehaviour
         while (Vector2.Distance(playerPosition, enemyPosition) < minPlayerEnemyDistance && attempts < 50);
 
         Instantiate(enemyPrefab, enemyPosition, Quaternion.identity);
-        skydKnap.SetPlayer(currentPlayer);
+        skydKnap.GetComponent<SkydKnap>().SetPlayer(currentPlayer);
     }
     Vector2 GetRandomPositionInCameraSide(bool leftSide)
     {
