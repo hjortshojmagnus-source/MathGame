@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Globalization;
 using System;
+using System.Diagnostics;
 
 [System.Serializable]
 public class Formula
@@ -22,11 +23,9 @@ public class Shoot : MonoBehaviour
     public GameObject Bullet;
     public EnemyScript enemy;
     public GameObject EnemyBullet;
-    private int test = 1;
 
     // Turn-baseret system
-    public bool _isPlayerTurn;
-    public bool IsPlayerTurn;
+    private bool _isPlayerTurn;
     private int roundNumber = 0;
     private Vector3 lastPlayerShootPosition;
     private GameObject lastPlayerBullet;
@@ -63,22 +62,26 @@ public class Shoot : MonoBehaviour
     public float paramC = 0f;      // Parameter c
     public float paramD = 0f;      // Parameter d
 
+    public static Shoot Instance;
+
     //private int currentParameter = 0; // 0=a, 1=b, 2=c, 3=d
 
     void Awake()
     {
+        Instance = this;
         // Sørg for at spilleren kan skyde fra starten
         _isPlayerTurn = true;
     }
 
     void Start()
     {
-        IsPlayerTurn = true;
-        playerPrefab = GameObject.Find("Player(Clone)");
+        UnityEngine.Debug.Log("FireBullet called from: " + this.gameObject.name + " ID: " + GetInstanceID());
+        UnityEngine.Debug.Log(this);
+        /*playerPrefab = GameObject.Find("Player(Clone)");
         if (playerPrefab == null)
         {
-            Debug.LogWarning("Player(Clone) ikke fundet i Start()");
-        }
+            UnityEngine.Debug.LogWarning("Player(Clone) ikke fundet i Start()");
+        }*/
 
         // Find enemy hvis den ikke er assignet fra Inspector
         if (enemy == null)
@@ -86,24 +89,24 @@ public class Shoot : MonoBehaviour
             enemy = FindFirstObjectByType<EnemyScript>();
             if (enemy == null)
             {
-                Debug.LogError("EnemyScript ikke fundet i scenen! Tjek at modstanderen er spawnet.");
+                UnityEngine.Debug.LogError("EnemyScript ikke fundet i scenen! Tjek at modstanderen er spawnet.");
             }
             else
             {
-                Debug.Log("EnemyScript fundet.");
+                UnityEngine.Debug.Log("EnemyScript fundet.");
             }
         }
         else
         {
-            Debug.Log("EnemyScript var allerede assignet.");
+            UnityEngine.Debug.Log("EnemyScript var allerede assignet.");
         }
 
         // Spilleren starter med første skud
         _isPlayerTurn = true;
-        Debug.Log("Spillet starter. _isPlayerTurn sat til true. DET ER SPILLERENS TUR!");
+        UnityEngine.Debug.Log("Spillet starter. _isPlayerTurn sat til true. DET ER SPILLERENS TUR!");
 
         formulaNames = new string[formulas.Count];
-        Debug.Log("GENERERER PATH MED GRAF: " + graf);
+        UnityEngine.Debug.Log("GENERERER PATH MED GRAF: " + graf);
 
         for (int i = 0; i < formulas.Count; i++)
         {
@@ -111,18 +114,19 @@ public class Shoot : MonoBehaviour
         }
 
         currentFormula = formulas[0]; // default
-        Debug.Log("Standardformel sat til: " + currentFormula.name);
+        UnityEngine.Debug.Log("Standardformel sat til: " + currentFormula.name);
     }
-    /*void Update()
+    void Update()
     {
-        EnemyBullet = GameObject.Find("EnemyBullet(Clone)");
+        /*EnemyBullet = GameObject.Find("EnemyBullet(Clone)");
         if (EnemyBullet != null && !_isPlayerTurn)
         {
             
-            Debug.Log("EnemyBullet fundet i Update()");
+            UnityEngine.Debug.Log("EnemyBullet fundet i Update()");
             _isPlayerTurn = true;
-        }
-    }*/
+        }*/
+        UnityEngine.Debug.Log($"_isplayerturn = " + _isPlayerTurn );
+    }
 
     public void SetGraf(string grafInput)
     {
@@ -133,11 +137,11 @@ public class Shoot : MonoBehaviour
     {
         switch (paramIndex)
         {
-            case 0: paramA = newValue; Debug.Log($"paramA = {newValue}"); break;
-            case 1: paramB = newValue; Debug.Log($"paramB = {newValue}"); break;
-            case 2: paramC = newValue; Debug.Log($"paramC = {newValue}"); break;
-            case 3: paramD = newValue; Debug.Log($"paramD = {newValue}"); break;
-            case 4: graf = newValue.ToString(); Debug.Log($"graf = {newValue}"); break;
+            case 0: paramA = newValue; UnityEngine.Debug.Log($"paramA = {newValue}"); break;
+            case 1: paramB = newValue; UnityEngine.Debug.Log($"paramB = {newValue}"); break;
+            case 2: paramC = newValue; UnityEngine.Debug.Log($"paramC = {newValue}"); break;
+            case 3: paramD = newValue; UnityEngine.Debug.Log($"paramD = {newValue}"); break;
+            case 4: graf = newValue.ToString(); UnityEngine.Debug.Log($"graf = {newValue}"); break;
         }
 
     }
@@ -153,7 +157,7 @@ public class Shoot : MonoBehaviour
         // Tjek om parameteren bruges i den valgte formel
         if (!currentFormula.expression.Contains(paramName))
         {
-            Debug.LogError($"Parameteren '{paramName}' bruges ikke i denne formel!");
+            UnityEngine.Debug.LogError($"Parameteren '{paramName}' bruges ikke i denne formel!");
             return;
         }
 
@@ -161,48 +165,50 @@ public class Shoot : MonoBehaviour
         inputBuffer = "";
 
         float currentValue = GetParameterValue(paramIndex);
-        Debug.Log($"Redigerer parameter {paramName} (nuværende værdi: {currentValue}). Skriv værdi og tryk Enter.");
+        UnityEngine.Debug.Log($"Redigerer parameter {paramName} (nuværende værdi: {currentValue}). Skriv værdi og tryk Enter.");
     }*/
 
 
     public void FireBullet()
     {
-        Debug.Log($"Bullet prefab = {Bullet}");
-        Debug.Log($"currentFormula = {currentFormula}");
-        Debug.Log($"graf = {graf}");
+        UnityEngine.Debug.Log("FireBullet called from: " + this.gameObject.name + " ID: " + GetInstanceID());
+        UnityEngine.Debug.Log("FireBullet CALLED at frame: " + Time.frameCount);
+        UnityEngine.Debug.Log("_isPlayerTurn = " + _isPlayerTurn);
         
         // Tjek om det er spillerens tur
-        /*if (IsPlayerTurn == false && IsPlayerTurn != true)
+        if (_isPlayerTurn == false)
         {
-            Debug.LogWarning("Det er IKKE din tur! Vent på at modstanderen har skudt.");
+            UnityEngine.Debug.LogWarning("Det er IKKE din tur! Vent på at modstanderen har skudt.");
             return;
-        }*/
+        }
+        _isPlayerTurn = false;
+        UnityEngine.Debug.Log("TURN CHANGE: _isPlayerTurn = false (player fired bullet)");
+
 
         if (Bullet == null)
         {
-            Debug.LogError("FEJL: Bullet prefab er null!");
+            UnityEngine.Debug.LogError("FEJL: Bullet prefab er null!");
             return;
         }
 
         if (Bullet != null)
         {
-            Debug.Log("Spilleren skyder. SKYDER MED GRAF: " + graf);
+            UnityEngine.Debug.Log("Spilleren skyder. SKYDER MED GRAF: " + graf);
             playerPrefab = GameObject.Find("Player(Clone)");
 
             if (playerPrefab == null)
             {
-                Debug.LogError("Player-prefab er null!");
+                UnityEngine.Debug.LogError("Player-prefab er null!");
                 return;
             }
 
-            Vector3 spawnPos = playerPrefab.transform.position;
+            //Vector3 spawnPos = playerPrefab.transform.position;
+            Vector3 spawnPos = transform.position; // Brug Shoot-objektets position som spawn-position for at sikre korrekt alignment med grafen
             lastPlayerShootPosition = spawnPos; // GEM SPILLERS POSITION
 
             GameObject newBullet = Instantiate(Bullet, spawnPos, transform.rotation);
             lastPlayerBullet = newBullet;
             newBullet.tag = "Bullet"; // Sørg for at player bullet har det rigtige tag
-
-            Debug.Log("✓ Player bullet spawnet fra position: " + spawnPos);
 
             Vector3[] path = GeneratePathFromFormula(spawnPos);
 
@@ -210,35 +216,26 @@ public class Shoot : MonoBehaviour
             if (bulletScript != null)
             {
                 bulletScript.waypoints = path;
-                Debug.Log("BulletScript assignet med waypoints.");
+                UnityEngine.Debug.Log("BulletScript assignet med waypoints.");
             }
             else
             {
-                Debug.LogError("BulletScript ikke fundet på instansieret bullet!");
+                UnityEngine.Debug.LogError("BulletScript ikke fundet på instansieret bullet!");
             }
             // Når spilleren har skudt, lås turen med det samme (uanset om BulletScript blev fundet)
             
         }
-        _isPlayerTurn = false;
-        IsPlayerTurn = false;
-        Debug.Log("TURN CHANGE: _isPlayerTurn = false (player fired bullet)");
-
     }
 
     public void OnPlayerBulletDespawned()
     {
-        Debug.Log("=== PLAYER-BULLET DESPAWNED ===");
+        UnityEngine.Debug.Log("=== PLAYER-BULLET DESPAWNED ===");
         // Brug den gemte spawn-position fra spillerens skud
         Vector3 targetPosition = lastPlayerShootPosition;
         if (enemy != null)
         {
             // Start enemy turn as a coroutine to avoid potential timing issues
             StartCoroutine(EnemyTurnRoutine(targetPosition));
-        }
-        else
-        {
-            Debug.LogWarning("Enemy er null i OnPlayerBulletDespawned! Tilbagefører tur til spiller.");
-            _isPlayerTurn = true; // sikre at spilleren ikke låses ude hvis enemy mangler
         }
 
         // Ryd op i referencer
@@ -247,13 +244,12 @@ public class Shoot : MonoBehaviour
 
     System.Collections.IEnumerator EnemyTurnRoutine(Vector3 targetPosition)
     {
-        Debug.Log("Starter enemy turn coroutine...");
+        UnityEngine.Debug.Log("Starter enemy turn coroutine...");
         yield return new WaitForSeconds(enemyTurnDelay);
 
         if (enemy == null)
         {
-            Debug.LogWarning("Enemy mangler ved EnemyTurnRoutine - giver tur tilbage til spiller.");
-            _isPlayerTurn = true;
+            UnityEngine.Debug.LogWarning("Enemy mangler ved EnemyTurnRoutine - giver tur tilbage til spiller.");
             yield break;
         }
 
@@ -264,8 +260,7 @@ public class Shoot : MonoBehaviour
         {
             enemy.ShootAtPlayer(targetPosition);
             enemyFired = true;
-            _isPlayerTurn = true;
-            Debug.Log("TURN CHANGE: enemy shot instantiated via enemy prefab; _isPlayerTurn = true");
+            UnityEngine.Debug.Log("TURN CHANGE: enemy shot instantiated via enemy prefab; _isPlayerTurn = true");
         }
         else
         {
@@ -289,47 +284,45 @@ public class Shoot : MonoBehaviour
                     bs.waypoints = new Vector3[] { enemyPos, fallbackTarget };
                     enemyFired = true;
                     _isPlayerTurn = true;
-                    Debug.Log("TURN CHANGE: enemy bullet instantiated from fallback prefab; _isPlayerTurn = true");
-                    Debug.Log("Fallback: Enemy bullet instantiated from player's Bullet prefab.");
+                    UnityEngine.Debug.Log("TURN CHANGE: enemy bullet instantiated from fallback prefab; _isPlayerTurn = true");
+                    UnityEngine.Debug.Log("Fallback: Enemy bullet instantiated from player's Bullet prefab.");
                 }
                 else
                 {
-                    Debug.LogError("Fallback enemy bullet mangler BulletScript!");
+                    UnityEngine.Debug.LogError("Fallback enemy bullet mangler BulletScript!");
                     Destroy(fb);
                 }
             }
             else
             {
-                Debug.LogWarning("Ingen enemy prefab og ingen player Bullet til fallback.");
+                UnityEngine.Debug.LogWarning("Ingen enemy prefab og ingen player Bullet til fallback.");
             }*/
         }
 
         if (enemyFired)
         {
             // Giv straks tur tilbage til spilleren når enemy har affyret sit skud
-            _isPlayerTurn = true;
-            Debug.Log("Enemy fired - spillerens tur givet tilbage.");
+            UnityEngine.Debug.Log("Enemy fired - spillerens tur givet tilbage.");
 
             enemy.NextRound();
             roundNumber++;
-            Debug.Log("Enemy shot executed. Runde: " + roundNumber);
+            UnityEngine.Debug.Log("Enemy shot executed. Runde: " + roundNumber);
         }
         else
         {
-            Debug.LogWarning("Enemy kunne ikke skyde. Giver tur tilbage til spiller.");
-            _isPlayerTurn = true;
+            UnityEngine.Debug.LogWarning("Enemy kunne ikke skyde. Giver tur tilbage til spiller.");
         }
     }
 
     public void OnEnemyBulletDespawned()
     {
-        Debug.Log("=== ENEMY-BULLET DESPAWNED ===");
+        UnityEngine.Debug.Log("=== ENEMY-BULLET DESPAWNED ===");
         _isPlayerTurn = true;
-        IsPlayerTurn = true;
-    }
+        UnityEngine.Debug.Log("TURN CHANGE: _isPlayerTurn = true (enemy bullet despawned)");
+          }
     /*public void RefreshFormula()
     {
-        Debug.Log("FORMEL OPDATERET");
+        UnityEngine.Debug.Log("FORMEL OPDATERET");
     }*/
 
 
@@ -357,7 +350,7 @@ public class Shoot : MonoBehaviour
 
         if (currentFormula == null)
         {
-            Debug.LogError("BrugerInput ikke fundet i formulas-listen!");
+            UnityEngine.Debug.LogError("BrugerInput ikke fundet i formulas-listen!");
             return;
         }
     }
@@ -393,7 +386,7 @@ public class Shoot : MonoBehaviour
     {
         if (currentFormula == null)
 {
-    Debug.LogError("Ingen formel valgt!");
+    UnityEngine.Debug.LogError("Ingen formel valgt!");
     return 0f;
 }
 
@@ -507,7 +500,7 @@ public class Shoot : MonoBehaviour
 
                     if (float.IsNaN(value) || float.IsInfinity(value))
                     {
-                        Debug.LogError($"Ugyldig værdi til {funcName}: {value}");
+                        UnityEngine.Debug.LogError($"Ugyldig værdi til {funcName}: {value}");
                         result = 0f;
                     }
                     else
@@ -526,7 +519,7 @@ public class Shoot : MonoBehaviour
 
                         if (float.IsNaN(result) || float.IsInfinity(result))
                         {
-                            Debug.LogError($"{funcName}({value}) gav ugyldig resultat: {result}");
+                            UnityEngine.Debug.LogError($"{funcName}({value}) gav ugyldig resultat: {result}");
                             result = 0f;
                         }
                     }
@@ -536,7 +529,7 @@ public class Shoot : MonoBehaviour
                 }
                 catch (System.Exception ex)
                 {
-                    Debug.LogError($"Fejl i {funcName}({innerExpression}): {ex.Message}");
+                    UnityEngine.Debug.LogError($"Fejl i {funcName}({innerExpression}): {ex.Message}");
                     // leave as-is
                 }
             }
@@ -597,7 +590,7 @@ public class Shoot : MonoBehaviour
 
                     if (float.IsNaN(baseValue) || float.IsInfinity(baseValue) || float.IsNaN(expValue) || float.IsInfinity(expValue))
                     {
-                        Debug.LogError($"Ugyldige værdier i pow: base={baseValue}, exp={expValue}");
+                        UnityEngine.Debug.LogError($"Ugyldige værdier i pow: base={baseValue}, exp={expValue}");
                         result = 0f;
                     }
                     else
@@ -605,7 +598,7 @@ public class Shoot : MonoBehaviour
                         result = (float)System.Math.Pow(baseValue, expValue);
                         if (float.IsNaN(result) || float.IsInfinity(result))
                         {
-                            Debug.LogError($"pow gav ugyldig resultat: pow({baseValue},{expValue}) = {result}");
+                            UnityEngine.Debug.LogError($"pow gav ugyldig resultat: pow({baseValue},{expValue}) = {result}");
                             result = 0f;
                         }
                     }
@@ -615,7 +608,7 @@ public class Shoot : MonoBehaviour
                 }
                 catch (System.Exception ex)
                 {
-                    Debug.LogError($"Fejl i pow({base1}, {exponent}): {ex.Message}");
+                    UnityEngine.Debug.LogError($"Fejl i pow({base1}, {exponent}): {ex.Message}");
                     // leave as-is
                 }
             }
@@ -728,7 +721,7 @@ expr = Regex.Replace(
 
 if (Regex.IsMatch(expr, @"[a-zA-Z]"))
 {
-    Debug.LogError("Uforløste tokens i expr: " + expr);
+    UnityEngine.Debug.LogError("Uforløste tokens i expr: " + expr);
     return 0f;
 }
 
@@ -744,7 +737,7 @@ float SimpleEval(string expr)
     }
     catch (Exception e)
     {
-        Debug.LogError("Eval fejl: " + expr + " | " + e.Message);
+        UnityEngine.Debug.LogError("Eval fejl: " + expr + " | " + e.Message);
         return 0f;
     }
 }
