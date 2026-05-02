@@ -10,9 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 3248371479581012545}
   - component: {fileID: 6420382051419562625}
-  - component: {fileID: 67794487205305695}
   - component: {fileID: -3948478682327294022}
   - component: {fileID: 7816377404273275738}
+  - component: {fileID: 956208040208838193}
   m_Layer: 0
   m_Name: Stone
   m_TagString: Stone
@@ -84,52 +84,16 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: -1
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 3286163911610860551, guid: 72fd40e3c075b3943b4a27220021979b, type: 3}
+  m_Sprite: {fileID: 1652253377850436328, guid: 27bc5e00db9bf504bbf6c3669d44371c, type: 3}
   m_Color: {r: 0.4566037, g: 0.4057742, b: 0.4057742, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 2.27, y: 2.35}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!58 &67794487205305695
-CircleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5741981036416065352}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_CompositeOperation: 0
-  m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_Radius: 0.5
 --- !u!50 &-3948478682327294022
 Rigidbody2D:
   serializedVersion: 5
@@ -170,3 +134,76 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObjektScript
   lives: 0
+--- !u!68 &956208040208838193
+EdgeCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5741981036416065352}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_EdgeRadius: 0
+  m_Points:
+  - {x: 0.4761145, y: -0.0478898}
+  - {x: 0.41113654, y: -0.36804974}
+  - {x: 0.32878482, y: -0.48801658}
+  - {x: 0.29851308, y: -0.45219532}
+  - {x: 0.2118083, y: -0.60885143}
+  - {x: 0.1333667, y: -0.6134244}
+  - {x: 0.09083503, y: -0.55466855}
+  - {x: 0.027931508, y: -0.5872996}
+  - {x: -0.01706202, y: -0.5998728}
+  - {x: -0.05342393, y: -0.5651543}
+  - {x: -0.18882586, y: -0.5013944}
+  - {x: -0.3277433, y: -0.47978738}
+  - {x: -0.46890107, y: -0.53379625}
+  - {x: -0.5551904, y: -0.52186704}
+  - {x: -0.5977849, y: -0.4439839}
+  - {x: -0.59253716, y: -0.19301003}
+  - {x: -0.53871083, y: -0.09258177}
+  - {x: -0.4792863, y: -0.021720156}
+  - {x: -0.51236147, y: 0.1092195}
+  - {x: -0.4764494, y: 0.26799276}
+  - {x: -0.087701015, y: 0.5131058}
+  - {x: 0.053097285, y: 0.52871585}
+  - {x: 0.20920399, y: 0.47388992}
+  - {x: 0.33533382, y: 0.5856222}
+  - {x: 0.41520023, y: 0.6199406}
+  - {x: 0.57609224, y: 0.60896915}
+  - {x: 0.60325146, y: 0.5400623}
+  - {x: 0.546896, y: 0.39602384}
+  - {x: 0.44767547, y: 0.34874117}
+  - {x: 0.49788737, y: 0.3080678}
+  - {x: 0.50897694, y: 0.098486796}
+  - {x: 0.48510405, y: -0.058151998}
+  m_AdjacentStartPoint: {x: 0, y: 0}
+  m_AdjacentEndPoint: {x: 0, y: 0}
+  m_UseAdjacentStartPoint: 0
+  m_UseAdjacentEndPoint: 0
