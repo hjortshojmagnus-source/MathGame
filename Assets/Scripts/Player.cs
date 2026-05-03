@@ -13,7 +13,11 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if (Liv <= 0)
+        {
+            Destroy(gameObject);
+            LoadScene("VundetScene");
+        }
     }
     private void HandleHit(GameObject other)
     {
