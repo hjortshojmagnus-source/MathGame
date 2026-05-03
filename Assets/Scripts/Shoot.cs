@@ -113,7 +113,7 @@ public class Shoot : MonoBehaviour
             formulaNames[i] = formulas[i].name;
         }
 
-        currentFormula = formulas[0]; // default
+        ActivateUserGraph();
         UnityEngine.Debug.Log("Standardformel sat til: " + currentFormula.name);
     }
 
@@ -164,6 +164,11 @@ public class Shoot : MonoBehaviour
         UnityEngine.Debug.Log("FireBullet called from: " + this.gameObject.name + " ID: " + GetInstanceID());
         UnityEngine.Debug.Log("FireBullet CALLED at frame: " + Time.frameCount);
         UnityEngine.Debug.Log("_isPlayerTurn = " + _isPlayerTurn);
+        if (currentFormula == null)
+{
+    UnityEngine.Debug.LogWarning("currentFormula var null - aktiverer bruger graf automatisk");
+    ActivateUserGraph();
+}
 
         // Tjek om det er spillerens tur
         if (_isPlayerTurn == false)
@@ -199,7 +204,8 @@ public class Shoot : MonoBehaviour
             GameObject newBullet = Instantiate(Bullet, spawnPos, transform.rotation);
             lastPlayerBullet = newBullet;
             newBullet.tag = "Bullet"; // Sørg for at player bullet har det rigtige tag
-
+UnityEngine.Debug.Log("AKTUEL FORMEL: " + (currentFormula != null ? currentFormula.name : "NULL"));
+UnityEngine.Debug.Log("GRAF STRING: " + graf);
             Vector3[] path = GeneratePathFromFormula(spawnPos);
 
             BulletScript bulletScript = newBullet.GetComponent<BulletScript>();

@@ -493,6 +493,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 866df5d544b453043b6ce68d71c8a94b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SkydKnap
+  inputField: {fileID: 1506212298}
 --- !u!1 &142130571
 GameObject:
   m_ObjectHideFlags: 0

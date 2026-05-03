@@ -1,11 +1,16 @@
 using UnityEngine;
+using TMPro;
 
 public class SkydKnap : MonoBehaviour
 {
     private Shoot shootScript;
 
+    public TMP_InputField inputField;
+
     public void OnClickFire()
     {
+        Shoot.Instance.SetGraf(inputField.text);
+    Shoot.Instance.FireBullet();
         if (shootScript != null)
         {
             shootScript.FireBullet();

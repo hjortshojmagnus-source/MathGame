@@ -74,6 +74,7 @@ public class UIHandler : MonoBehaviour
 
     public void SetGraf()
     {
+        UnityEngine.Debug.Log("Ui handler kaldt");
         string valueGraf = inputFieldGraf.text.Trim();
         
         if (string.IsNullOrEmpty(valueGraf))
