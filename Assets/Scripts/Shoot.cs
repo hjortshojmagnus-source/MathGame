@@ -116,21 +116,11 @@ public class Shoot : MonoBehaviour
         currentFormula = formulas[0]; // default
         UnityEngine.Debug.Log("Standardformel sat til: " + currentFormula.name);
     }
-    void Update()
-    {
-        /*EnemyBullet = GameObject.Find("EnemyBullet(Clone)");
-        if (EnemyBullet != null && !_isPlayerTurn)
-        {
-            
-            UnityEngine.Debug.Log("EnemyBullet fundet i Update()");
-            _isPlayerTurn = true;
-        }*/
-        UnityEngine.Debug.Log($"_isplayerturn = " + _isPlayerTurn );
-    }
 
     public void SetGraf(string grafInput)
     {
         graf = grafInput;
+        UnityEngine.Debug.Log("graf = " + graf);
         ActivateUserGraph();
     }
     public void changeParameter(int paramIndex, float newValue)
@@ -174,7 +164,7 @@ public class Shoot : MonoBehaviour
         UnityEngine.Debug.Log("FireBullet called from: " + this.gameObject.name + " ID: " + GetInstanceID());
         UnityEngine.Debug.Log("FireBullet CALLED at frame: " + Time.frameCount);
         UnityEngine.Debug.Log("_isPlayerTurn = " + _isPlayerTurn);
-        
+
         // Tjek om det er spillerens tur
         if (_isPlayerTurn == false)
         {
@@ -223,7 +213,7 @@ public class Shoot : MonoBehaviour
                 UnityEngine.Debug.LogError("BulletScript ikke fundet på instansieret bullet!");
             }
             // Når spilleren har skudt, lås turen med det samme (uanset om BulletScript blev fundet)
-            
+        UnityEngine.Debug.Log("GRAF VÆRDI VED SKUD: '" + graf + "'");
         }
     }
 
@@ -319,11 +309,11 @@ public class Shoot : MonoBehaviour
         UnityEngine.Debug.Log("=== ENEMY-BULLET DESPAWNED ===");
         _isPlayerTurn = true;
         UnityEngine.Debug.Log("TURN CHANGE: _isPlayerTurn = true (enemy bullet despawned)");
-          }
-    /*public void RefreshFormula()
+    }
+    public void RefreshFormula()
     {
         UnityEngine.Debug.Log("FORMEL OPDATERET");
-    }*/
+    }
 
 
     public int GetRoundNumber()
@@ -385,10 +375,10 @@ public class Shoot : MonoBehaviour
     float EvaluateCurrentFormula(float x)
     {
         if (currentFormula == null)
-{
-    UnityEngine.Debug.LogError("Ingen formel valgt!");
-    return 0f;
-}
+        {
+            UnityEngine.Debug.LogError("Ingen formel valgt!");
+            return 0f;
+        }
 
         string name = currentFormula.name;
         float y = 0f;
@@ -424,14 +414,15 @@ public class Shoot : MonoBehaviour
                 break;
             case "BrugerInput":
 
-    string expr = graf;
+                string expr = graf;
 
-    y = EvaluateExpression(expr, x);
+                y = EvaluateExpression(expr, x);
 
-    break;
+                break;
 
 
             default:
+                UnityEngine.Debug.Log("Bruger default");
                 y = 0f;
                 break;
         }
@@ -618,43 +609,43 @@ public class Shoot : MonoBehaviour
     }
 
     string InsertImplicitMultiplication(string expr)
-{
-    expr = expr.Replace(" ", "");
+    {
+        expr = expr.Replace(" ", "");
 
-    expr = expr.Replace("sin", "@SIN@");
-    expr = expr.Replace("cos", "@COS@");
-    expr = expr.Replace("tan", "@TAN@");
-    expr = expr.Replace("sqrt", "@SQRT@");
-    expr = expr.Replace("log", "@LOG@");
-    expr = expr.Replace("exp", "@EXP@");
+        expr = expr.Replace("sin", "@SIN@");
+        expr = expr.Replace("cos", "@COS@");
+        expr = expr.Replace("tan", "@TAN@");
+        expr = expr.Replace("sqrt", "@SQRT@");
+        expr = expr.Replace("log", "@LOG@");
+        expr = expr.Replace("exp", "@EXP@");
 
-    expr = Regex.Replace(expr, @"(\d|\))\(", "$1*(");   
-    expr = Regex.Replace(expr, @"\)(\d|[a-zA-Z])", ")*$1");
-    expr = Regex.Replace(expr, @"([a-zA-Z])(\d)", "$1*$2");
+        expr = Regex.Replace(expr, @"(\d|\))\(", "$1*(");
+        expr = Regex.Replace(expr, @"\)(\d|[a-zA-Z])", ")*$1");
+        expr = Regex.Replace(expr, @"([a-zA-Z])(\d)", "$1*$2");
 
-    expr = expr.Replace("@SIN@", "sin");
-    expr = expr.Replace("@COS@", "cos");
-    expr = expr.Replace("@TAN@", "tan");
-    expr = expr.Replace("@SQRT@", "sqrt");
-    expr = expr.Replace("@LOG@", "log");
-    expr = expr.Replace("@EXP@", "exp");
+        expr = expr.Replace("@SIN@", "sin");
+        expr = expr.Replace("@COS@", "cos");
+        expr = expr.Replace("@TAN@", "tan");
+        expr = expr.Replace("@SQRT@", "sqrt");
+        expr = expr.Replace("@LOG@", "log");
+        expr = expr.Replace("@EXP@", "exp");
 
-    return expr;
-}
+        return expr;
+    }
 
-string ConvertToUnityMath(string expr)
-{
-    expr = expr.Replace(" ", "");
+    string ConvertToUnityMath(string expr)
+    {
+        expr = expr.Replace(" ", "");
 
-    expr = Regex.Replace(expr, @"(\w+|\d+)\^(\w+|\d+)", "Math.Pow($1,$2)");
+        expr = Regex.Replace(expr, @"(\w+|\d+)\^(\w+|\d+)", "Math.Pow($1,$2)");
 
-    expr = expr.Replace("sin", "Sin");
-    expr = expr.Replace("cos", "Cos");
-    expr = expr.Replace("tan", "Tan");
-    expr = expr.Replace("sqrt", "Sqrt");
+        expr = expr.Replace("sin", "Sin");
+        expr = expr.Replace("cos", "Cos");
+        expr = expr.Replace("tan", "Tan");
+        expr = expr.Replace("sqrt", "Sqrt");
 
-    return expr;
-}
+        return expr;
+    }
     float GetParameterValue(int paramIndex)
     {
         return paramIndex switch
@@ -678,151 +669,151 @@ string ConvertToUnityMath(string expr)
         }
     }
     string HandleFunctions(string expr)
-{
-    expr = Regex.Replace(expr, @"sin\(", "Sin(");
-    expr = Regex.Replace(expr, @"cos\(", "Cos(");
-    expr = Regex.Replace(expr, @"tan\(", "Tan(");
-    expr = Regex.Replace(expr, @"sqrt\(", "Sqrt(");
+    {
+        expr = Regex.Replace(expr, @"sin\(", "Sin(");
+        expr = Regex.Replace(expr, @"cos\(", "Cos(");
+        expr = Regex.Replace(expr, @"tan\(", "Tan(");
+        expr = Regex.Replace(expr, @"sqrt\(", "Sqrt(");
 
-    expr = expr.Replace("Sin", "Sin");
-expr = expr.Replace("Cos", "Cos");
-expr = expr.Replace("Tan", "Tan");
-expr = expr.Replace("Sqrt", "Sqrt");
+        expr = expr.Replace("Sin", "Sin");
+        expr = expr.Replace("Cos", "Cos");
+        expr = expr.Replace("Tan", "Tan");
+        expr = expr.Replace("Sqrt", "Sqrt");
 
-    return expr;
-}
+        return expr;
+    }
     float EvaluateExpression(string expr, float xValue)
     {
         expr = expr.Replace(" ", "").ToLowerInvariant();
 
-// STEP 0: replace 'variable' token with numeric value (allows expressions like 'variable*a*x')
-expr = Regex.Replace(expr, @"\bvariable\b", variableMultiplier.ToString(CultureInfo.InvariantCulture));
+        // STEP 0: replace 'variable' token with numeric value (allows expressions like 'variable*a*x')
+        expr = Regex.Replace(expr, @"\bvariable\b", variableMultiplier.ToString(CultureInfo.InvariantCulture));
 
-// STEP 1: implicit multiplication
-expr = Regex.Replace(expr, @"(\d)\s*\(", "$1*(");
-expr = Regex.Replace(expr, @"\)\s*\(", ")*(");
-expr = Regex.Replace(expr, @"\)\s*(\d)", ")*$1");
-expr = Regex.Replace(expr, @"(\d)\s*(sin|cos|tan|sqrt|exp|log|abs)", "$1*$2");
-expr = Regex.Replace(expr, @"(sin|cos|tan|sqrt|exp|log|abs)\s*\(", "$1(");
-expr = Regex.Replace(expr, @"(\d)\s*x", "$1*x");
-expr = Regex.Replace(expr, @"x\s*(\d)", "x*$1");
+        // STEP 1: implicit multiplication
+        expr = Regex.Replace(expr, @"(\d)\s*\(", "$1*(");
+        expr = Regex.Replace(expr, @"\)\s*\(", ")*(");
+        expr = Regex.Replace(expr, @"\)\s*(\d)", ")*$1");
+        expr = Regex.Replace(expr, @"(\d)\s*(sin|cos|tan|sqrt|exp|log|abs)", "$1*$2");
+        expr = Regex.Replace(expr, @"(sin|cos|tan|sqrt|exp|log|abs)\s*\(", "$1(");
+        expr = Regex.Replace(expr, @"(\d)\s*x", "$1*x");
+        expr = Regex.Replace(expr, @"x\s*(\d)", "x*$1");
 
-// STEP 2: safe x replace
-expr = Regex.Replace(
-    expr,
-    @"(?<![a-zA-Z0-9_])x(?![a-zA-Z0-9_])",
-    xValue.ToString(CultureInfo.InvariantCulture)
-);
-
-
-    expr = Regex.Replace(expr, @"(\d+(\.\d+)?|\))\s*\^\s*(\d+(\.\d+)?|\()", "pow($1,$3)");
-
-    expr = EvaluateMathFunctions(expr);
-
-if (Regex.IsMatch(expr, @"[a-zA-Z]"))
-{
-    UnityEngine.Debug.LogError("Uforløste tokens i expr: " + expr);
-    return 0f;
-}
+        // STEP 2: safe x replace
+        expr = Regex.Replace(
+            expr,
+            @"(?<![a-zA-Z0-9_])x(?![a-zA-Z0-9_])",
+            xValue.ToString(CultureInfo.InvariantCulture)
+        );
 
 
-    return SimpleEval(expr);
-}
-float SimpleEval(string expr)
-{
-    try
-    {
-        // Brug en simpel parser i stedet for DataTable
-        return ParseAndEvaluate(expr);
-    }
-    catch (Exception e)
-    {
-        UnityEngine.Debug.LogError("Eval fejl: " + expr + " | " + e.Message);
-        return 0f;
-    }
-}
+        expr = Regex.Replace(expr, @"(\d+(\.\d+)?|\))\s*\^\s*(\d+(\.\d+)?|\()", "pow($1,$3)");
 
-float ParseAndEvaluate(string expr)
-{
-    // Simpel rekursiv descent parser for grundlæggende matematik
-    expr = expr.Replace(" ", "").Replace(",", ".");
-    return EvaluateExpressionRecursive(expr, 0, out _);
-}
+        expr = EvaluateMathFunctions(expr);
 
-float EvaluateExpressionRecursive(string expr, int start, out int end)
-{
-    float result = EvaluateTerm(expr, start, out end);
-
-    while (end < expr.Length && (expr[end] == '+' || expr[end] == '-'))
-    {
-        char op = expr[end];
-        int nextStart = end + 1;
-        float nextTerm = EvaluateTerm(expr, nextStart, out end);
-        if (op == '+') result += nextTerm;
-        else result -= nextTerm;
-    }
-
-    return result;
-}
-
-float EvaluateTerm(string expr, int start, out int end)
-{
-    float result = EvaluateFactor(expr, start, out end);
-
-    while (end < expr.Length && (expr[end] == '*' || expr[end] == '/'))
-    {
-        char op = expr[end];
-        int nextStart = end + 1;
-        float nextFactor = EvaluateFactor(expr, nextStart, out end);
-        if (op == '*') result *= nextFactor;
-        else if (nextFactor != 0) result /= nextFactor;
-        else throw new DivideByZeroException();
-    }
-
-    return result;
-}
-
-float EvaluateFactor(string expr, int start, out int end)
-{
-    end = start;
-
-    // Håndter unære operatorer (+ og -)
-    if (expr[start] == '-' || expr[start] == '+')
-    {
-        char op = expr[start];
-        float factor = EvaluateFactor(expr, start + 1, out end);
-        return op == '-' ? -factor : factor;
-    }
-
-    // Håndter parenteser
-    if (expr[start] == '(')
-    {
-        int parenEnd;
-        float inner = EvaluateExpressionRecursive(expr, start + 1, out parenEnd);
-        if (parenEnd < expr.Length && expr[parenEnd] == ')')
+        if (Regex.IsMatch(expr, @"[a-zA-Z]"))
         {
-            end = parenEnd + 1;
-            return inner;
+            UnityEngine.Debug.LogError("Uforløste tokens i expr: " + expr);
+            return 0f;
         }
-        throw new Exception("Ubalancerede parenteser");
-    }
 
-    // Håndter tal
-    if (char.IsDigit(expr[start]) || expr[start] == '.')
+
+        return SimpleEval(expr);
+    }
+    float SimpleEval(string expr)
     {
-        int numEnd = start;
-        while (numEnd < expr.Length && (char.IsDigit(expr[numEnd]) || expr[numEnd] == '.'))
-            numEnd++;
-        string numStr = expr.Substring(start, numEnd - start);
-        if (float.TryParse(numStr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float num))
+        try
         {
-            end = numEnd;
-            return num;
+            // Brug en simpel parser i stedet for DataTable
+            return ParseAndEvaluate(expr);
         }
-        throw new Exception("Ugyldigt tal: " + numStr);
+        catch (Exception e)
+        {
+            UnityEngine.Debug.LogError("Eval fejl: " + expr + " | " + e.Message);
+            return 0f;
+        }
     }
 
-    throw new Exception("Ugyldigt udtryk ved position " + start);
-}
+    float ParseAndEvaluate(string expr)
+    {
+        // Simpel rekursiv descent parser for grundlæggende matematik
+        expr = expr.Replace(" ", "").Replace(",", ".");
+        return EvaluateExpressionRecursive(expr, 0, out _);
+    }
+
+    float EvaluateExpressionRecursive(string expr, int start, out int end)
+    {
+        float result = EvaluateTerm(expr, start, out end);
+
+        while (end < expr.Length && (expr[end] == '+' || expr[end] == '-'))
+        {
+            char op = expr[end];
+            int nextStart = end + 1;
+            float nextTerm = EvaluateTerm(expr, nextStart, out end);
+            if (op == '+') result += nextTerm;
+            else result -= nextTerm;
+        }
+
+        return result;
+    }
+
+    float EvaluateTerm(string expr, int start, out int end)
+    {
+        float result = EvaluateFactor(expr, start, out end);
+
+        while (end < expr.Length && (expr[end] == '*' || expr[end] == '/'))
+        {
+            char op = expr[end];
+            int nextStart = end + 1;
+            float nextFactor = EvaluateFactor(expr, nextStart, out end);
+            if (op == '*') result *= nextFactor;
+            else if (nextFactor != 0) result /= nextFactor;
+            else throw new DivideByZeroException();
+        }
+
+        return result;
+    }
+
+    float EvaluateFactor(string expr, int start, out int end)
+    {
+        end = start;
+
+        // Håndter unære operatorer (+ og -)
+        if (expr[start] == '-' || expr[start] == '+')
+        {
+            char op = expr[start];
+            float factor = EvaluateFactor(expr, start + 1, out end);
+            return op == '-' ? -factor : factor;
+        }
+
+        // Håndter parenteser
+        if (expr[start] == '(')
+        {
+            int parenEnd;
+            float inner = EvaluateExpressionRecursive(expr, start + 1, out parenEnd);
+            if (parenEnd < expr.Length && expr[parenEnd] == ')')
+            {
+                end = parenEnd + 1;
+                return inner;
+            }
+            throw new Exception("Ubalancerede parenteser");
+        }
+
+        // Håndter tal
+        if (char.IsDigit(expr[start]) || expr[start] == '.')
+        {
+            int numEnd = start;
+            while (numEnd < expr.Length && (char.IsDigit(expr[numEnd]) || expr[numEnd] == '.'))
+                numEnd++;
+            string numStr = expr.Substring(start, numEnd - start);
+            if (float.TryParse(numStr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float num))
+            {
+                end = numEnd;
+                return num;
+            }
+            throw new Exception("Ugyldigt tal: " + numStr);
+        }
+
+        throw new Exception("Ugyldigt udtryk ved position " + start);
+    }
 
 }
