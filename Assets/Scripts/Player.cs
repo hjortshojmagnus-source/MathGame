@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
@@ -11,14 +12,14 @@ public class Player : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    public void Update()
     {
         if (Liv <= 0)
         {
-            Destroy(gameObject);
-            LoadScene("VundetScene");
+            UnityEngine.SceneManagement.SceneManager.LoadScene("TabtScene");
         }
     }
+
     private void HandleHit(GameObject other)
     {
         if (other == null) return;
@@ -29,6 +30,7 @@ public class Player : MonoBehaviour
             Liv--;
             if (Liv <= 0)
                 Destroy(gameObject);
+            UnityEngine.SceneManagement.SceneManager.LoadScene("TabtScene");
         }
     }
 

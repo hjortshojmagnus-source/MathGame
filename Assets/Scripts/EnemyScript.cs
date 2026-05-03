@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class EnemyScript : MonoBehaviour
 {
@@ -102,6 +103,7 @@ public class EnemyScript : MonoBehaviour
             {
                 Debug.Log("AI besejret!");
                 Destroy(gameObject);
+                UnityEngine.SceneManagement.SceneManager.LoadScene("VundetScene");
             }
         }
     }
