@@ -116,8 +116,8 @@ MonoBehaviour:
   variableMultiplier: 1
   enemyTurnDelay: 0.15
   startX: 0
-  endX: 10
-  pointCount: 100
+  endX: 50
+  pointCount: 1000
   paramA: 1
   paramB: 0
   paramC: 0

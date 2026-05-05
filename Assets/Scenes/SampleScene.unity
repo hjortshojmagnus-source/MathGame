@@ -2468,7 +2468,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &697339943
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3094,9 +3094,9 @@ MonoBehaviour:
   m_OnEndEdit:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 708955985}
-        m_TargetAssemblyTypeName: UIHandler, Assembly-CSharp
-        m_MethodName: SetParam
+      - m_Target: {fileID: 708955988}
+        m_TargetAssemblyTypeName: InputFieldVarReplace, Assembly-CSharp
+        m_MethodName: ReplaceAInFormula
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -4647,7 +4647,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1274583909
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5076,7 +5076,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: ax^2+bx+c
+          m_StringArgument: ax^2+bx
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &1364992315
@@ -5409,7 +5409,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1477182496
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6294,9 +6294,9 @@ MonoBehaviour:
   m_OnEndEdit:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 708955985}
-        m_TargetAssemblyTypeName: UIHandler, Assembly-CSharp
-        m_MethodName: SetParam
+      - m_Target: {fileID: 708955988}
+        m_TargetAssemblyTypeName: InputFieldVarReplace, Assembly-CSharp
+        m_MethodName: ReplaceCInFormula
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -6402,7 +6402,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1690562225
 RectTransform:
   m_ObjectHideFlags: 0
@@ -7806,9 +7806,9 @@ MonoBehaviour:
   m_OnEndEdit:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 708955985}
-        m_TargetAssemblyTypeName: UIHandler, Assembly-CSharp
-        m_MethodName: SetParam
+      - m_Target: {fileID: 708955988}
+        m_TargetAssemblyTypeName: InputFieldVarReplace, Assembly-CSharp
+        m_MethodName: ReplaceDInFormula
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -8145,7 +8145,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: ax+b
+          m_StringArgument: ax
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &2095835234
